@@ -7,11 +7,7 @@ trigger JobApplicationTrigger on Job_Application__c (before insert, after insert
 
         when BEFORE_DELETE {}
 
-        when AFTER_INSERT {
-
-            JobApplicationHandler.afterInsert(Trigger.new);
-            
-        }
+        when AFTER_INSERT {}
 
         when AFTER_UPDATE {
             JobApplicationHandler.afterUpdate(Trigger.new, Trigger.oldMap);

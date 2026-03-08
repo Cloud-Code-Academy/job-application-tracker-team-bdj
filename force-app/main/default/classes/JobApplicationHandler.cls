@@ -1,30 +1,7 @@
 public with sharing class JobApplicationHandler {
 
-    public static void afterInsert (List<Job_Application__c> jobApplications) {
-        // Intialize job app & task lists //
-        List<Job_Application__c> savedApps = new List<Job_Application__c>();
-        List<Task> tasksToInsert = new List<Task>();
-
-        // Loop Through jobApplications (aka Trigger.new) //
-        for(Job_Application__c jobApp : jobApplications) {
-            if(jobApp.Status__c == 'Saved') {
-                savedApps.add(jobApp);
-            }
-        }
-
-        // Call helper methods for task template and new Job App records with a status of "Saved" //
-        if(!savedApps.isEmpty()) {
-            Task taskTemplate = taskHelper();
-            tasksToInsert.addAll(jobAppStatusSaved(savedApps, taskTemplate));
-        }
-
-        if(!tasksToInsert.isEmpty()) {
-            insert tasksToInsert;
-        }
-
-    }
-
     public static void afterUpdate(List<Job_Application__c> newJobList, Map<Id, Job_Application__c> oldJobMap) {
+
         // Initialize job app & task lists //
         List<Job_Application__c> listSaved = new List<Job_Application__c>();
         List<Job_Application__c> listApplying = new List<Job_Application__c>();
