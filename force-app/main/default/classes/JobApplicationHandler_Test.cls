@@ -12,8 +12,9 @@ public with sharing class JobApplicationHandler_Test {
                 Status__c = 'New',
                 Position_Title__c = 'Test Dev ' + String.valueOf(i),
                 Application_Date__c = System.today(),
-                Salary__c = 115000,
-                Location__c = 'Remote'
+                Salary__c = '115000',
+                Location__c = 'Remote',
+                Source_Id__c = 'SourceId_' + String.valueOf(i)
                 )
             );
         }
@@ -78,7 +79,7 @@ public with sharing class JobApplicationHandler_Test {
         ];
 
         for(Job_Application__c jobApp : testJobApps) {
-            jobApp.Salary__c = 120000;
+            jobApp.Salary__c = '120000 - 14000';
         }
 
         // Test
