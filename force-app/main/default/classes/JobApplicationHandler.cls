@@ -1,8 +1,29 @@
+/**
+ * JobApplicationHandler
+ * Handler class for the Job Application trigger. Contains all business logic
+ * for the Job_Application__c object, following the single-trigger-per-object pattern.
+ * 
+ * "with sharing" is used to enforce the running user's sharing rules,
+ * ensuring proper data access and security.
+ */
 public with sharing class JobApplicationHandler {
 
+    /**
+     * afterUpdate - Fires after Job Application records are updated.
+     * Creates status-specific Task records when a Job Application's Status changes.
+     * 
+     * Approach: Uses the oldMap to compare previous vs. current Status values.
+     * Records are sorted into status-specific lists, then passed to dedicated helper
+     * methods that generate the appropriate Tasks. This keeps each status's logic
+     * isolated and maintainable.
+     * 
+     * @param newJobList - Trigger.new (list of updated Job Application records)
+     * @param oldJobMap  - Trigger.oldMap (map of records with their previous field values)
+     */
     public static void afterUpdate(List<Job_Application__c> newJobList, Map<Id, Job_Application__c> oldJobMap) {
 
-        // Initialize job app & task lists //
+        // Separate lists for each status — records are sorted here so each helper
+        // method only processes the records relevant to its status.
         List<Job_Application__c> listSaved = new List<Job_Application__c>();
         List<Job_Application__c> listApplying = new List<Job_Application__c>();
         List<Job_Application__c> listApplied = new List<Job_Application__c>();
@@ -10,12 +31,18 @@ public with sharing class JobApplicationHandler {
         List<Job_Application__c> listNegotiating = new List<Job_Application__c>();
         List<Job_Application__c> listAccepted = new List<Job_Application__c>();
         List<Job_Application__c> listClosed = new List<Job_Application__c>();
+
+        // Collects all Tasks from every status helper into one list
+        // so we can perform a single bulk DML insert at the end.
         List<Task> tasksToInsert = new List<Task>();
 
-        // Initialize boolean variable to check for status changes
+        // Flag to track whether any record actually changed status.
+        // Used as an early exit optimization — if no statuses changed,
+        // we skip all helper method calls and the DML operation entirely.
         Boolean statusesChanged = false;
         
-        // Evaluate if Status has changed
+        // Loop through updated records and compare current Status to the old value.
+        // A switch statement routes each record to the correct status-specific list.
         for(Job_Application__c jobApp : newJobList) {
             if(jobApp.Status__c != oldJobMap.get(jobApp.Id).Status__c) {
                 if(statusesChanged == false) {
@@ -33,15 +60,20 @@ public with sharing class JobApplicationHandler {
             }
         }
 
-        // Verify that at least one list has records
+        // Early exit: if no record changed status, there's nothing to do.
+        // This avoids unnecessary processing and DML when only non-status fields were edited.
         if(statusesChanged == false) { 
             return; 
         }
             
-        // Initialize task template //
+        // Create a reusable Task template with default field values.
+        // Each helper method clones this template, which avoids repeating
+        // the same field assignments and keeps defaults consistent.
         Task taskTemplate = taskHelper();
 
-        // Call helper methods for new Job App records with a changed Status //
+        // Call the appropriate helper method for each status that has records.
+        // Each helper returns a list of Tasks, which are added to the master list.
+        // Checking isEmpty() first avoids calling methods with no records to process.
         if(!listSaved.isEmpty()) {
             tasksToInsert.addAll(jobAppStatusSaved(listSaved, taskTemplate));
         }
@@ -64,6 +96,9 @@ public with sharing class JobApplicationHandler {
             tasksToInsert.addAll(jobAppStatusClosed(listClosed, taskTemplate));
         }
 
+        // Bulk insert all Tasks in a single DML statement.
+        // This is critical for governor limit compliance — inserting one list
+        // instead of inserting inside each helper method or each loop iteration.
         if(!tasksToInsert.isEmpty()) {
             insert tasksToInsert;
         }
@@ -74,27 +109,40 @@ public with sharing class JobApplicationHandler {
 
 /// *** HELPER METHODS *** ///
 
+    /**
+     * taskHelper - Creates a reusable Task template with default values.
+     * 
+     * Approach: By defining defaults in one place, all status-specific methods
+     * can clone() this template and only override what differs (Subject, WhatId).
+     * This follows DRY (Don't Repeat Yourself) and makes future changes to
+     * defaults easy — update once here instead of in every method.
+     * 
+     * clone(false, true, false, false) = no Id, deep clone, no auto-number, no preserve Id
+     */
     private static Task taskHelper() {
         Task taskTemplate = new Task(
             Status = 'Not Started',
             Type = 'Other',
-            OwnerId = UserInfo.getUserId(),
-            ActivityDate = System.today().addDays(1),
+            OwnerId = UserInfo.getUserId(),       // Assigns task to the current user
+            ActivityDate = System.today().addDays(1), // Due tomorrow by default
             Priority = 'Normal'
         );
 
         return taskTemplate;
     }
 
+    /**
+     * jobAppStatusSaved - Creates 3 Tasks for Job Applications moved to 'Saved' status.
+     * Tasks guide the user to evaluate whether the role is worth pursuing.
+     * Each task is cloned from the template so it inherits the default values.
+     */
     private static List<Task> jobAppStatusSaved(List<Job_Application__c> jobApplications, Task taskTemplate) {
-        // Initialize task list to pass back to the caller method //
         List<Task> taskList = new List<Task>();
 
-        // Loop through the list of passed Job Applications to build the Tasks for them //
         for(Job_Application__c jobApp : jobApplications) {
 
             Task task1 = taskTemplate.clone(false, true, false, false);
-            task1.WhatId = jobApp.Id;
+            task1.WhatId = jobApp.Id;  // Links the Task to the Job Application record
             task1.Subject = 'Ensure job description aligns with interests and values';
             taskList.add(task1);
 
@@ -114,11 +162,13 @@ public with sharing class JobApplicationHandler {
 
     }
 
+    /**
+     * jobAppStatusApplying - Creates 5 Tasks for Job Applications moved to 'Applying' status.
+     * Tasks focus on networking, research, and application preparation steps.
+     */
     private static List<Task> jobAppStatusApplying(List<Job_Application__c> jobApplications, Task taskTemplate) {
-        // Initialize task list to pass back to the caller method //
         List<Task> taskList = new List<Task>();
 
-        // Loop through the list of passed Job Applications to build the Tasks for them //
         for(Job_Application__c jobApp : jobApplications) {
 
             Task task1 = taskTemplate.clone(false, true, false, false);
@@ -150,11 +200,13 @@ public with sharing class JobApplicationHandler {
         return taskList;
     }
 
+    /**
+     * jobAppStatusApplied - Creates 4 Tasks for Job Applications moved to 'Applied' status.
+     * Tasks encourage follow-up outreach and continued job searching.
+     */
     private static List<Task> jobAppStatusApplied(List<Job_Application__c> jobApplications, Task taskTemplate) {
-        // Initialize task list to pass back to the caller method //
         List<Task> taskList = new List<Task>();
 
-        // Loop through the list of passed Job Applications to build the Tasks for them //
         for(Job_Application__c jobApp : jobApplications) {
             Task task1 = taskTemplate.clone(false, true, false, false);
             task1.WhatId = jobApp.Id;
@@ -180,11 +232,13 @@ public with sharing class JobApplicationHandler {
         return taskList;
     }
 
+    /**
+     * jobAppStatusInterviewing - Creates 5 Tasks for Job Applications moved to 'Interviewing' status.
+     * Tasks cover interview preparation, research, and post-interview etiquette.
+     */
     private static List<Task> jobAppStatusInterviewing(List<Job_Application__c> jobApplications, Task taskTemplate) {
-        // Initialize task list to pass back to the caller method //
         List<Task> taskList = new List<Task>();
 
-        // Loop through the list of passed Job Applications to build the Tasks for them //
         for(Job_Application__c jobApp : jobApplications) {
 
             Task task1 = taskTemplate.clone(false, true, false, false);
@@ -216,11 +270,13 @@ public with sharing class JobApplicationHandler {
         return taskList;
     }
         
+    /**
+     * jobAppStatusNegotiating - Creates 3 Tasks for Job Applications moved to 'Negotiating' status.
+     * Tasks guide salary research, script preparation, and final offer evaluation.
+     */
     private static List<Task> jobAppStatusNegotiating(List<Job_Application__c> jobApplications, Task taskTemplate) {
-        // Initialize task list to pass back to the caller method //
         List<Task> taskList = new List<Task>();
 
-        // Loop through the list of passed Job Applications to build the Tasks for them //
         for(Job_Application__c jobApp : jobApplications) {
 
             Task task1 = taskTemplate.clone(false, true, false, false);
@@ -242,11 +298,13 @@ public with sharing class JobApplicationHandler {
         return taskList;
     }
 
+    /**
+     * jobAppStatusAccepted - Creates 3 Tasks for Job Applications moved to 'Accepted' status.
+     * Tasks cover resignation planning, self-care, and onboarding prep.
+     */
     private static List<Task> jobAppStatusAccepted(List<Job_Application__c> jobApplications, Task taskTemplate) {
-        // Initialize task list to pass back to the caller method //
         List<Task> taskList = new List<Task>();
 
-        // Loop through the list of passed Job Applications to build the Tasks for them //
         for(Job_Application__c jobApp : jobApplications) {
             
             Task task1 = taskTemplate.clone(false, true, false, false);
@@ -268,11 +326,13 @@ public with sharing class JobApplicationHandler {
         return taskList;
     }
 
+    /**
+     * jobAppStatusClosed - Creates 2 Tasks for Job Applications moved to 'Closed' status.
+     * Tasks encourage reflection and maintaining professional relationships.
+     */
     private static List<Task> jobAppStatusClosed(List<Job_Application__c> jobApplications, Task taskTemplate) {
-        // Initialize task list to pass back to the caller method //
         List<Task> taskList = new List<Task>();
 
-        // Loop through the list of passed Job Applications to build the Tasks for them //
         for(Job_Application__c jobApp : jobApplications) {
 
             Task task1 = taskTemplate.clone(false, true, false, false);

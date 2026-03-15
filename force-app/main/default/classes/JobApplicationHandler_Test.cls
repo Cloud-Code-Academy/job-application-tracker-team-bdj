@@ -1,8 +1,22 @@
+/**
+ * JobApplicationHandler_Test
+ * Test class for JobApplicationHandler. Validates that status-based Task creation
+ * works correctly across all 7 statuses (positive test) and confirms that
+ * non-status field changes do not generate Tasks (negative test).
+ * 
+ * Uses @TestSetup to create shared test data once, which improves performance
+ * and ensures each test method starts with the same baseline data.
+ */
 @IsTest
-
 public with sharing class JobApplicationHandler_Test {
-    @TestSetup
 
+    /**
+     * @TestSetup - Creates 50 Job Application records with Status = 'New'.
+     * 50 records tests bulkification — ensures the handler doesn't hit governor
+     * limits when processing records in bulk.
+     * Status is set to 'New' because the validation rule requires it on insert.
+     */
+    @TestSetup
     static void createTestData(){
         // create with bulkification in mind, if needed
         List<Job_Application__c> jobAppList = new List<Job_Application__c>();
@@ -21,9 +35,20 @@ public with sharing class JobApplicationHandler_Test {
         insert jobAppList;
     }
 
+    /**
+     * Positive Test: Verifies that changing status to each of the 7 statuses
+     * creates the correct number of Tasks for each.
+     * 
+     * Approach: Updates 7 records to 7 different statuses in a single DML call,
+     * then uses an AggregateResult query to count Tasks per Job Application.
+     * A Map<Id, Integer> allows efficient lookup of task counts by record Id.
+     * 
+     * Expected task counts: Saved=3, Applying=5, Applied=4, Interviewing=5,
+     * Negotiating=3, Accepted=3, Closed=2
+     */
     @IsTest
     public static void JobApplicationHandler_afterUpdate_happyPath() {
-        // Query and Edit Test Data
+        // Query 7 test records to assign one to each status
         List<Job_Application__c> testJobApps = [
             SELECT Id, Status__c 
             FROM Job_Application__c 
@@ -38,12 +63,13 @@ public with sharing class JobApplicationHandler_Test {
         testJobApps[5].Status__c = 'Accepted';
         testJobApps[6].Status__c = 'Closed';
 
-        // Test
+        // Update all 7 records in a single DML to fire the trigger once (bulk test)
         Test.startTest();
         update testJobApps;
         Test.stopTest();
 
-        // Query count of tasks created based on Job App Id
+        // Use AggregateResult to count Tasks grouped by their parent Job Application.
+        // This is more efficient than querying all Task records individually.
         List<AggregateResult> taskCounts = [
             SELECT WhatId, COUNT(Id) taskCount
             FROM Task
@@ -51,15 +77,17 @@ public with sharing class JobApplicationHandler_Test {
             GROUP BY WhatId
         ];
 
-        // Instantiate Map to associate Id and taskCounts
+        // Build a Map of Job Application Id => Task count for easy assertion lookups.
+        // This avoids looping through results for each assert statement.
         Map<Id, Integer> taskCountMap = new Map<Id, Integer>();
 
-        // Loop through Aggregate Results to build Map
+        // Populate the map from AggregateResult records
         for(AggregateResult ar : taskCounts){
             taskCountMap.put((Id)ar.get('WhatId'), (Integer)ar.get('taskCount'));
         }
 
-        // Assert correct number of tasks created based on Status
+        // Assert each status generated the expected number of Tasks.
+        // Third parameter is a descriptive message for debugging failed assertions.
         System.assertEquals(3, taskCountMap.get(testJobApps[0].Id), 'Saved status should have 3 tasks');
         System.assertEquals(5, taskCountMap.get(testJobApps[1].Id), 'Applying status should have 5 tasks');
         System.assertEquals(4, taskCountMap.get(testJobApps[2].Id), 'Applied status should have 4 tasks');
@@ -70,9 +98,14 @@ public with sharing class JobApplicationHandler_Test {
         
     }
 
+    /**
+     * Negative Test: Verifies that updating non-status fields (e.g., Salary)
+     * does NOT create any Tasks. This tests the early-exit logic in afterUpdate()
+     * where statusesChanged == false triggers a return.
+     */
     @IsTest
     public static void JobApplicationHandler_afterUpdate_NoStatusChange() {
-        // Query and Edit Test Data
+        // Query records and change only the Salary field (not Status)
         List<Job_Application__c> testJobApps = [
             SELECT Id, Status__c FROM Job_Application__c LIMIT 5
         ];
@@ -81,15 +114,15 @@ public with sharing class JobApplicationHandler_Test {
             jobApp.Salary__c = 120000;
         }
 
-        // Test
+        // Update records — only Salary changed, Status unchanged
         Test.startTest();
         update testJobApps;
         Test.stopTest();
 
-        // Query to find any created Tasks
+        // Verify no Tasks were created since Status didn't change
         List<Task> createdTasks = [SELECT Id FROM Task WHERE WhatId IN :testJobApps];
 
-        // Assert to confirm empty list
+        // Assert zero Tasks — confirms the handler correctly exits early
         System.assertEquals(0, createdTasks.size(), 'No tasks should be created when status has not changed');
     }
 }
