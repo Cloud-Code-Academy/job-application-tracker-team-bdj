@@ -25,5 +25,52 @@ public class PrimaryContactHandlerTest {
     @isTest
     static void testSetPrimaryContact() {
         // TO DO: implement unit test
+
+        // Create Account
+        Account acc = new Account(Name = 'Test Company');
+        insert acc;
+
+        // Create Contact
+        Contact con = new Contact(
+            FirstName = 'Test',
+            LastName = 'Contact',
+            AccountId = acc.Id
+        );
+        insert con;
+
+        // Create Job Application (Primary Contact blank)
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Test Application',
+            Company_Name__c = acc.Id
+        );
+        insert app;
+
+        // Create Junction Object Record
+        Job_Application_Contact__c junction = new Job_Application_Contact__c(
+            Job_Application__c = app.Id,
+            Contact__c = con.Id
+        );
+        insert junction;
+
+        // Query application before running handler
+        List<Job_Application__c> apps = [
+            SELECT Id, Primary_Contact__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        Test.startTest();
+        PrimaryContactHandler.setPrimaryContact(apps);
+        Test.stopTest();
+
+        // Verify Primary Contact was set
+        Job_Application__c updatedApp = [
+            SELECT Primary_Contact__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(con.Id, updatedApp.Primary_Contact__c, 'Primary Contact should be set from junction object');
     }
 }
+
