@@ -1,8 +1,10 @@
 public with sharing class PrimaryContactHandler {
+// Public is accessible outside the class, with sharing to respect sharing rules/user permissions
 
     public static void setPrimaryContact(List<Job_Application__c> apps) {
+    //Passing in a list of Job Applications
 
-        // Sets to store Ids of the applications and the accounts
+        // Sets to store Ids of the applications that need contacts and the accounts
         Set<Id> applicationIds = new Set<Id>();
         Set<Id> accountIds = new Set<Id>();
 
@@ -14,7 +16,7 @@ public with sharing class PrimaryContactHandler {
                 applicationIds.add(app.Id);
             }
 
-            // For each application, checking if it has a company name and adding to the set
+            // For each application, checking if an account (company) exists and adding to the set
             if (app.Company_Name__c != null) {
                 accountIds.add(app.Company_Name__c);
             }
@@ -27,31 +29,31 @@ public with sharing class PrimaryContactHandler {
             WHERE Job_Application__c IN :applicationIds
         ];
 
-        // Creating a map to connect the application to the contact
+        // Creating a map to connect the application (key) to the contact (value)
         Map<Id,Id> appToContact = new Map<Id,Id>();
 
         // Looping through Job Application contacts
         for (Job_Application_Contact__c cont : contacts) {
 
-            // If the job application contact is related to a job application, relate the contact to the job application
+            // If the job application contact is related to a job application, assign the first contact found
             if (!appToContact.containsKey(cont.Job_Application__c)) {
                 appToContact.put(cont.Job_Application__c, cont.Contact__c);
             }
 
         }
 
-        // Query Contacts from Accounts
+        // Query contacts from accounts ordered by newest first
         List<Contact> accountContacts = [
             SELECT Id, AccountId
             FROM Contact
             WHERE AccountId IN :accountIds
-            ORDER BY CreatedDate
+            ORDER BY CreatedDate DESC
         ];
 
         // Creating a map to connect account to the contact
         Map<Id,Id> accountToContact = new Map<Id,Id>();
 
-        // Looping through the contacts and checking if the account is related to a contact
+        // Looping through the contacts, if the account does not have a contact assigned, assign this contact
         for (Contact c : accountContacts) {
             if (!accountToContact.containsKey(c.AccountId)) {
                 accountToContact.put(c.AccountId, c.Id);
@@ -64,25 +66,21 @@ public with sharing class PrimaryContactHandler {
         // Loop through Job Applications
         for (Job_Application__c app : apps) {
 
-            // If primary contact is null/missing
+            // If primary contact is null
             if (app.Primary_Contact__c == null) {
                 Id contactId;
 
-                // And a related job application contact exists
+                // And a related job application contact exists, link that contact to the job application
                 if (appToContact.containsKey(app.Id)) {
                     contactId = appToContact.get(app.Id);
-
-                    // Add that application to the list to update
-                   // appsToUpdate.add(new Job_Application__c(Id = app.Id, Primary_Contact__c = appToContact.get(app.Id)));
-
                 }
 
-                //
+                // If no related job application, check for the account contact
                 else if (accountToContact.containsKey(app.Company_Name__c)) {
                     contactId = accountToContact.get(app.Company_Name__c);
                 }
 
-                //
+                // If a contact was found, set the contact as the Primary Contact
                 if (contactId != null) {
                     app.Primary_Contact__c = contactId;
                 }
@@ -90,11 +88,6 @@ public with sharing class PrimaryContactHandler {
             }
 
         }
-
-        // Update applications if list is not empty
-       // if (!appsToUpdate.isEmpty()) {
-        //    update appsToUpdate;
-       // }
 
     }
 
