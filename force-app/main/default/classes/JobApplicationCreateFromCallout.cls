@@ -1,6 +1,7 @@
 public with sharing class JobApplicationCreateFromCallout {
 
-    // Constructors to deal with Jooble Responses
+    // Wrappers to deal with Jooble Responses
+    // Field names must match what is received via the API
     public class JoobleResponse {
         public Integer totalCount;            
         public List<JoobleJob> jobs;
@@ -22,7 +23,7 @@ public with sharing class JobApplicationCreateFromCallout {
     // Main Method
     public static void createJobAppFromJson(String jsonResponse){
 
-        // Deserialize jsonResponse passed from JoobleCallout class
+        // Deserialize jsonResponse passed from JoobleCallout class - important to cast the deserialization to the JoobleResponse data type
         JoobleResponse joobleData = (JoobleResponse) JSON.deserialize(jsonResponse, JoobleResponse.class);
 
         if (joobleData.jobs == null || joobleData.jobs.isEmpty()){
@@ -117,9 +118,9 @@ public with sharing class JobApplicationCreateFromCallout {
 
         String cleanSnippet = snippet.stripHtmlTags();
         cleanSnippet = cleanSnippet.replace('&nbsp;', ' ')
-                                   .replace('&amp;',  '&')
-                                   .replace('&lt;',   '<')
-                                   .replace('&gt;',   '>')
+                                   .replace('&amp;', '&')
+                                   .replace('&lt;', '<')
+                                   .replace('&gt;', '>')
                                    .replace('&quot;', '"');
         cleanSnippet = cleanSnippet.replaceAll('\\s+', ' ').trim();
         return cleanSnippet;
