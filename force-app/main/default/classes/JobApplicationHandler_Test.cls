@@ -1,6 +1,7 @@
 @IsTest
 public with sharing class JobApplicationHandler_Test {
 
+    // Updates for Merge
     @TestSetup
     static void createTestData(){
         List<Job_Application__c> jobAppList = new List<Job_Application__c>();
