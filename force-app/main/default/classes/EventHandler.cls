@@ -18,7 +18,7 @@ public with sharing class EventHandler {
 
 
     /// *** VALIDATION METHODS (No SOQL Required) *** ///
-
+Is test
 
     /*
      * 1. Fixed Interview Duration
