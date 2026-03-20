@@ -16,10 +16,13 @@
  * 
  * "with sharing" enforces the running user's record-level security.
  */
-public with sharing class InterviewReminderScheduler implements Schedulable {
-    // To Do 
+public with sharing class InterviewReminder implements Schedulable {
+    // To Do
     // 1. execute() — Required Schedulable method
     // 2. sendInterviewReminders() — Core logic
     // 3. buildEmailBody() — HTML email builder
 
+    public void execute(SchedulableContext ctx) {
+        // TODO: implement sendInterviewReminders()
+    }
 }
