@@ -25,5 +25,143 @@ public class PrimaryContactHandlerTest {
     @isTest
     static void testSetPrimaryContact() {
         // TO DO: implement unit test
+
+        // Create Account
+        Account acc = new Account(Name = 'Test Company');
+        insert acc;
+
+        // Create Contact
+        Contact con = new Contact(
+            FirstName = 'Test',
+            LastName = 'Contact',
+            AccountId = acc.Id
+        );
+        insert con;
+
+        // Create Job Application (Primary Contact blank)
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Test Application',
+            Company_Name__c = acc.Id,
+            Primary_Contact__c = null,
+            Application_Date__c = Date.today(),
+            Location__c = 'Remote',
+            Position_Title__c = 'Test Position',
+            Salary__c = 100000,
+            Status__c = 'Applied'
+        );
+        insert app;
+
+        // Create Job Application Contact
+        Job_Application_Contact__c junction = new Job_Application_Contact__c(
+            Job_Application__c = app.Id,
+            Contact__c = con.Id
+        );
+        insert junction;
+
+        // Query application before running handler
+        List<Job_Application__c> apps = [
+            SELECT Id, Primary_Contact__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        Test.startTest();
+        update app;
+        Test.stopTest();
+
+        // Verify Primary Contact was set from Job Application Contact
+        Job_Application__c updatedApp = [
+            SELECT Primary_Contact__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(con.Id, updatedApp.Primary_Contact__c, 'Primary Contact should be set from Job Application Contact object');
+    }
+
+    @isTest
+    static void testSetPrimaryContactFromAccount() {
+
+        // Create Account
+        Account acc = new Account(Name = 'Another Company');
+        insert acc;
+
+        // Create old Contact
+        Contact con1 = new Contact(
+            FirstName = 'Old',
+            LastName = 'Contact',
+            AccountId = acc.Id
+        );
+        insert con1;
+
+        // Create new Contact
+        Contact con2 = new Contact(
+            FirstName = 'New',
+            LastName = 'Contact',
+            AccountId = acc.Id
+        );
+        insert con2;
+
+        // Create Job Application (Primary Contact blank)
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Another Application',
+            Company_Name__c = acc.Id,
+            Primary_Contact__c = null,
+            Application_Date__c = Date.today(),
+            Location__c = 'Remote',
+            Position_Title__c = 'Another Position',
+            Salary__c = 100000,
+            Status__c = 'Applied'
+        );
+        insert app;
+
+        Test.startTest();
+        update app;
+        Test.stopTest();
+
+        // Verify Primary Contact was set from Account
+        Job_Application__c updatedApp = [
+            SELECT Primary_Contact__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(con1.Id, updatedApp.Primary_Contact__c, 'Primary Contact should be set from the newest Account Contact');
+    }
+
+
+    @isTest
+    static void testSetPrimaryContactNoContact() {
+
+        // Create Account
+        Account acc = new Account(Name = 'Bad Company');
+        insert acc;
+
+        // Create Job Application (Primary Contact blank)
+        Job_Application__c app = new Job_Application__c(
+            Name = 'Bad Application',
+            Company_Name__c = acc.Id,
+            Primary_Contact__c = null,
+            Application_Date__c = Date.today(),
+            Location__c = 'Remote',
+            Position_Title__c = 'Bad Position',
+            Salary__c = 100000,
+            Status__c = 'Applied'
+        );
+        insert app;
+
+        Test.startTest();
+        update app;
+        Test.stopTest();
+
+        // Verify Primary Contact was set from Account
+        Job_Application__c updatedApp = [
+            SELECT Primary_Contact__c
+            FROM Job_Application__c
+            WHERE Id = :app.Id
+        ];
+
+        System.assertEquals(null, updatedApp.Primary_Contact__c, 'Primary Contact should be null if no related Contacts exist');
     }
 }
+
