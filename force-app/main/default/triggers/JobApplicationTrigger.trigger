@@ -2,8 +2,14 @@ trigger JobApplicationTrigger on Job_Application__c (before insert, after insert
 
     switch on Trigger.operationType{
         when BEFORE_INSERT {}
+        when BEFORE_INSERT {
+            PrimaryContactHandler.setPrimaryContact(Trigger.new);
+        }
 
         when BEFORE_UPDATE {}
+        when BEFORE_UPDATE {
+            PrimaryContactHandler.setPrimaryContact(Trigger.new);
+        }
 
         when BEFORE_DELETE {}
 
@@ -18,5 +24,4 @@ trigger JobApplicationTrigger on Job_Application__c (before insert, after insert
         when AFTER_UNDELETE {}
 
     }
-
 }
