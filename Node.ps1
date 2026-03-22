@@ -1,1 +1,0 @@
-$env:PATH = "C:\Users\JulieHernandez\OneDrive - Benefits All In\Documents\Apex Documents\node-v24.14.0-win-x64;" + $env:PATH
