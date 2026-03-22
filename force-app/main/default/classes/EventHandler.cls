@@ -16,11 +16,26 @@
  */
 public with sharing class EventHandler {
 
+    /*
+     * 1. Overlapping Interviews
+     * Pseudo Rules:
+     * When an interview is created or updated
+     *     Find existing interviews with the same interviewer (OwnerId).
+     *     For each existing interview
+     *         If new interview start time is before existing interview end time
+     *         AND new interview end time is after existing interview start time
+     *             Prevent the interview from being saved.
+     *             Display overlap error:
+     *             "This interview conflicts with another interview scheduled
+     *              for this interviewer. Please select a different time."
+     */
+    // TODO: validateNoOverlappingEvents()
+
 
     /// *** VALIDATION METHODS (No SOQL Required) *** ///
 
     /*
-     * 1. Fixed Interview Duration
+     * 2. Fixed Interview Duration
      * Pseudo Rules:
      * For each interview record
      *     Calculate the duration between start and end time.
@@ -33,7 +48,7 @@ public with sharing class EventHandler {
 
 
     /*
-     * 2. Business Hours Restriction
+     * 3. Business Hours Restriction
      * Pseudo Rules:
      * For each new interview record
      *     If start time is before 8:00 AM
@@ -50,7 +65,7 @@ public with sharing class EventHandler {
 
 
     /*
-     * 3. No Weekend Scheduling
+     * 5. No Weekend Scheduling
      * Pseudo Rules:
      * For each new interview record
      *     If start date falls on Saturday or Sunday
@@ -74,24 +89,9 @@ public with sharing class EventHandler {
     /// *** VALIDATION METHODS (Require SOQL) *** ///
 
 
-    /*
-     * 4. Overlapping Interviews
-     * Pseudo Rules:
-     * When an interview is created or updated
-     *     Find existing interviews with the same interviewer (OwnerId).
-     *     For each existing interview
-     *         If new interview start time is before existing interview end time
-     *         AND new interview end time is after existing interview start time
-     *             Prevent the interview from being saved.
-     *             Display overlap error:
-     *             "This interview conflicts with another interview scheduled
-     *              for this interviewer. Please select a different time."
-     */
-    // TODO: validateNoOverlappingEvents()
-
 
     /*
-     * 5. Interview Buffer Time
+     * 6. Interview Buffer Time
      * Pseudo Rules:
      * For each new interview record
      *     Find existing interviews for the same interviewer.
@@ -108,7 +108,7 @@ public with sharing class EventHandler {
 
 
     /*
-     * 6. Maximum Interviews Per Day
+     * 7. Maximum Interviews Per Day
      * Pseudo Rules:
      * For each new interview record (insert or update)
      *     Find interviews for the same interviewer on the same date.

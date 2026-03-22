@@ -15,12 +15,12 @@ trigger EventTrigger on Event (before insert, before update) {
 
         // Validate new events for scheduling rules
         when BEFORE_INSERT {
-            // TODO: Call EventHandler validation methods
+            EventHandler.validateNoOverLappingEvents(Trigger.new);     
         }
 
         // Validate updated events in case the date/time was changed
         when BEFORE_UPDATE {
-            // TODO: Call EventHandler validation methods
+             EventHandler.validateNoOverlappingEvents(Trigger.new); 
         }
     }
 }
