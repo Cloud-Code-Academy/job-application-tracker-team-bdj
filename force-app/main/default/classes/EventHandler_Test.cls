@@ -131,3 +131,27 @@ List<Event> allEvents = [SELECT Id FROM Event];
 Assert.areEquel(2,allEvents.size(), 'Back to back events should be allowed');
 
 }
+
+@IsTest
+static void overlap_noConflict_bulkInsert() {
+
+//Create multiple events are the same day to see if it will prevent you from creating above 3.
+List<Event> eventList = new List<Event>();
+for(Interger i = 0; i< 5; i++) {
+    eventList.add(new Event(
+        Subject = 'Interview' + i,
+        StartDateTime = DateTime.newInstance(2025,1,6,8 + i, 0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,9 + i, 0,0)
+        ));
+
+}
+
+    Test.startTest();
+    insert eventList;
+    Test.stopTest();
+
+    List<Event> allEvent = [SELECT Id FROM Event];
+    Assert.areEqual(5, allEvents.size(), 'All 5 non-overlapping events should be savedS');
+
+}
+}
