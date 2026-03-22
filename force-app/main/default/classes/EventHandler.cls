@@ -29,11 +29,19 @@ public with sharing class EventHandler {
      *             "This interview conflicts with another interview scheduled
      *              for this interviewer. Please select a different time."
      */
-    // TODO: validateNoOverlappingEvents()
+    public static List<Event> getExistingEvents(List<Event> newEvents) {
+        
+        //Look through the interviews already scheduled and get the owner Id
+        Set<Id> ownerIds = new Set<Id>();
+        for (Event evt : newEvents) {
+            ownerIds.add(evt.OwnerId);
+        }
+    }
 
-
-    /// *** VALIDATION METHODS (No SOQL Required) *** ///
-
+        // Now that we have all of our currently booked interviews we need to
+        // look through them to see if they have a start time that i  
+    
+    
     /*
      * 2. Fixed Interview Duration
      * Pseudo Rules:
