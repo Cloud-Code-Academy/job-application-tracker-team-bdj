@@ -16,7 +16,7 @@
  */
 public with sharing class EventHandler {
 
-    /*
+    /* 
      * 1. Overlapping Interviews
      * Pseudo Rules:
      * When an interview is created or updated
@@ -36,13 +36,26 @@ public with sharing class EventHandler {
         for (Event evt : newEvents) {
             ownerIds.add(evt.OwnerId);
         }
-    }
+    
+            
+        /* Now that we have all of our currently booked interviews we need to
+        look through them to see if they have a start time that is before an 
+        existing interview endtime and if the endtime is after an existing interview start time 
+        by using a query*/
 
-        // Now that we have all of our currently booked interviews we need to
-        // look through them to see if they have a start time that i  
+    List<Event> existingEvents = [
+        SELECT Id, OwnerId, StartDateTime, EndDateTime
+        FROM Event 
+        WHERE OwnerId IN :ownerIds
+
+
+    ];
+
+      return existingEvents;
+    }
     
-    
-    /*
+
+        /*
      * 2. Fixed Interview Duration
      * Pseudo Rules:
      * For each interview record
