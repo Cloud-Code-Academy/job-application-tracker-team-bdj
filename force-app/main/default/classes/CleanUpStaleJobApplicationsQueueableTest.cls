@@ -63,7 +63,7 @@ private class CleanUpStaleJobApplicationsQueueableTest {
                 Location__c = 'Remote',
                 Notes__c = 'Accepted Application',
                 Source_Id__c = 'TriggerSourceId',
-                Follow_Up_Date__c = oldDate
+                Follow_Up_Date__c = newDate
             )
           };
 
@@ -80,6 +80,9 @@ private class CleanUpStaleJobApplicationsQueueableTest {
                 jobApp.Status__c = 'Accepted';
             }
           }
+
+          // Update the job applications to Closed and Accepted
+          update jobAppList;
           
         Test.startTest();
         // Call the queueable class
