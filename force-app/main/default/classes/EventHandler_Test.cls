@@ -62,12 +62,12 @@ static void overlap_conflict_exactSameTime(){
     Test.startTest();
 try{
     insert event2;
-    Assert.fail('Expected an error because the events operlap completely.');
+    Assert.fail('Expected an error because the events overlap completely.');
 }catch(DMLException error) {
     Assert.isTrue(
-        error.getMessage().contains ('This interview time conflicts'),
+        error.getMessage().contains('This interview time conflicts'),
         'Error message should mention the conflict. Got: ' + error.getMessage()
-        );
+    );
     }
     Test.stopTest();
 }
@@ -79,7 +79,7 @@ try{
         Event event1 = new Event(
           Subject = 'Interview 1',
           StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
-          EndDateTime = DateTime.newInstance(2025,1,6,0,0,0)
+          EndDateTime = DateTime.newInstance(2025,1,6,10,0,0)
         );
         insert event1;
 
@@ -128,7 +128,7 @@ insert event2;
 Test.stopTest();
 
 List<Event> allEvents = [SELECT Id FROM Event];
-Assert.areEquel(2,allEvents.size(), 'Back to back events should be allowed');
+Assert.areEqual(2,allEvents.size(), 'Back to back events should be allowed');
 
 }
 
@@ -137,7 +137,7 @@ static void overlap_noConflict_bulkInsert() {
 
 //Create multiple events are the same day to see if it will prevent you from creating above 3.
 List<Event> eventList = new List<Event>();
-for(Interger i = 0; i< 5; i++) {
+for(Integer i = 0; i< 5; i++) {
     eventList.add(new Event(
         Subject = 'Interview' + i,
         StartDateTime = DateTime.newInstance(2025,1,6,8 + i, 0,0),
@@ -150,8 +150,8 @@ for(Interger i = 0; i< 5; i++) {
     insert eventList;
     Test.stopTest();
 
-    List<Event> allEvent = [SELECT Id FROM Event];
-    Assert.areEqual(5, allEvents.size(), 'All 5 non-overlapping events should be savedS');
+    List<Event> allEvents = [SELECT Id FROM Event];
+    Assert.areEqual(5, allEvents.size(), 'All 5 non-overlapping events should be saved');
 
 }
 }

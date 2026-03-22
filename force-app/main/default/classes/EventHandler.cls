@@ -95,6 +95,7 @@ public with sharing class EventHandler{
             }
         }
     }
+    }
     
      /* 2. Fixed Interview Duration
      * Pseudo Rules:
@@ -181,4 +182,3 @@ public with sharing class EventHandler{
      *          Please select a different date."
      */
     }
-}
