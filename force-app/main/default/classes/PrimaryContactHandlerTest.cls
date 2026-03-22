@@ -46,7 +46,7 @@ public class PrimaryContactHandlerTest {
             Application_Date__c = Date.today(),
             Location__c = 'Remote',
             Position_Title__c = 'Test Position',
-            Salary__c = 100000,
+            Salary__c = '100000',
             Status__c = 'Applied'
         );
         insert app;
@@ -110,7 +110,7 @@ public class PrimaryContactHandlerTest {
             Application_Date__c = Date.today(),
             Location__c = 'Remote',
             Position_Title__c = 'Another Position',
-            Salary__c = 100000,
+            Salary__c = '100000',
             Status__c = 'Applied'
         );
         insert app;
@@ -145,7 +145,7 @@ public class PrimaryContactHandlerTest {
             Application_Date__c = Date.today(),
             Location__c = 'Remote',
             Position_Title__c = 'Bad Position',
-            Salary__c = 100000,
+            Salary__c = '100000',
             Status__c = 'Applied'
         );
         insert app;
