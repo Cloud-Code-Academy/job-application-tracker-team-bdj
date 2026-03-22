@@ -104,4 +104,30 @@ try{
         }
         Test.stopTest();
     }
+
+@IsTest
+static void overlap_noConflict_backToBack() {
+
+        //Creating the first event. Monday 9am - 10am
+        Event event1 = new Event( 
+            Subject = 'Interview 1', 
+            StartDateTime = Datetime.newInstance(2025,1,6,9,0,0),
+            EndDateTime = DateTime.newInstance(2025,1,6,10,0,0)
+        );
+        insert event1;
+        
+        //Creating an event that starts at the exact same time as an end time. 
+        Event event2 = new Event( 
+            Subject = 'Interview 2',
+            StartDateTime = Datetime.newInstance(2025,1,6,10,0,0),
+            EndDateTime = Datetime.newinstance(2025,1,6,11,0,0)       
+        );
+
+Test.startTest();
+insert event2;
+Test.stopTest();
+
+List<Event> allEvents = [SELECT Id FROM Event];
+Assert.areEquel(2,allEvents.size(), 'Back to back events should be allowed');
+
 }
