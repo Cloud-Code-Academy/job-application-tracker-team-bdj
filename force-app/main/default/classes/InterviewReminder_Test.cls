@@ -1,5 +1,5 @@
 @IsTest
-private class InterviewReminderScheduler_Test {
+private class InterviewReminder_Test {
 
     @TestSetup
     static void setupData() {

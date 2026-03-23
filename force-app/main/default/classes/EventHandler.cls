@@ -14,13 +14,90 @@
  * "with sharing" enforces the running user's sharing rules so users can only
  * see/validate against events they have access to.
  */
-public with sharing class EventHandler {
+public with sharing class EventHandler{
+
+    /* 
+     * 1. Overlapping Interviews
+     * Pseudo Rules:
+     * When an interview is created or updated
+     *     Find existing interviews with the same interviewer (OwnerId).
+     *     For each existing interview
+     *         If new interview start time is before existing interview end time
+     *         AND new interview end time is after existing interview start time
+     *             Prevent the interview from being saved.
+     *             Display overlap error:
+     *             "This interview conflicts with another interview scheduled
+     *              for this interviewer. Please select a different time."
+     */
+    public static List<Event> getExistingEvents(List<Event> newEvents) {
+        
+        //Look through the interviews already scheduled and get the owner Id//
+        Set<Id> ownerIds = new Set<Id>();
+        for (Event evt : newEvents) {
+            ownerIds.add(evt.OwnerId);
+        }
+    
+    
+        /* Now that we have all of our currently booked interviews we need to
+        look through them to see if they have a start time that is before an 
+        existing interview endtime and if the endtime is after an existing interview start time 
+        by using a query*/
+
+    List<Event> existingEvents = [
+        SELECT Id, OwnerId, StartDateTime, EndDateTime
+        FROM Event 
+        WHERE OwnerId IN :ownerIds
 
 
-    /// *** VALIDATION METHODS (No SOQL Required) *** ///
+    ];
 
-    /*
-     * 1. Fixed Interview Duration
+      return existingEvents;
+    }
+
+    public static void validateNoOverlappingEvents(List<Event> newEvents) {
+
+        /*Call the method from above "ExistingEvents" to get existing
+        events and loop throught them*/
+        List<Event> existingEvents = getExistingEvents(newEvents);
+
+        //This is where you would look through each event the user is trying to book.
+        for (Event newEvt : newEvents) {
+        
+        // now convert the new event time to minutes
+        Long newStartMinutes = newEvt.StartDateTime.getTime() / 60000;
+        Long newEndMinutes = newEvt.EndDateTime.getTime() / 60000;
+        
+        //No we can look through everything in our data to see if we find matches.
+        //And have it skip itself if it is the same ID.  
+
+        for (Event existingEvt : existingEvents) {
+
+            if (existingEvt.OwnerId != newEvt.OwnerId || existingEvt.Id == newEvt.Id) {
+                continue;
+            }
+
+            // convert the existing event time to minutesd
+
+            Long existingStartMinutes = existingEvt.StartDateTime.getTime()/ 60000;
+            Long existingEndMinutes = existingEvt.EndDateTime.getTime()/ 60000;
+
+         /* Final part of checking for over lapping. "If new interview start time is before existing interview end time
+          *AND new interview end time is after existing interview start time prevent the interview from being booked
+          *prevent it from happening and display an error message.*/
+            
+            if (newStartMinutes < existingEndMinutes && newEndMinutes > existingStartMinutes) {
+                newEvt.addError(
+                    'This interview time conflicts with another meeting scheduled.' + 
+                    'Please select a different time.'
+                );
+                break;
+    
+            }
+        }
+    }
+    }
+    
+     /* 2. Fixed Interview Duration
      * Pseudo Rules:
      * For each interview record
      *     Calculate the duration between start and end time.
@@ -33,7 +110,7 @@ public with sharing class EventHandler {
 
 
     /*
-     * 2. Business Hours Restriction
+     * 3. Business Hours Restriction
      * Pseudo Rules:
      * For each new interview record
      *     If start time is before 8:00 AM
@@ -50,7 +127,7 @@ public with sharing class EventHandler {
 
 
     /*
-     * 3. No Weekend Scheduling
+     * 5. No Weekend Scheduling
      * Pseudo Rules:
      * For each new interview record
      *     If start date falls on Saturday or Sunday
@@ -74,24 +151,9 @@ public with sharing class EventHandler {
     /// *** VALIDATION METHODS (Require SOQL) *** ///
 
 
-    /*
-     * 4. Overlapping Interviews
-     * Pseudo Rules:
-     * When an interview is created or updated
-     *     Find existing interviews with the same interviewer (OwnerId).
-     *     For each existing interview
-     *         If new interview start time is before existing interview end time
-     *         AND new interview end time is after existing interview start time
-     *             Prevent the interview from being saved.
-     *             Display overlap error:
-     *             "This interview conflicts with another interview scheduled
-     *              for this interviewer. Please select a different time."
-     */
-    // TODO: validateNoOverlappingEvents()
-
 
     /*
-     * 5. Interview Buffer Time
+     * 6. Interview Buffer Time
      * Pseudo Rules:
      * For each new interview record
      *     Find existing interviews for the same interviewer.
@@ -108,7 +170,7 @@ public with sharing class EventHandler {
 
 
     /*
-     * 6. Maximum Interviews Per Day
+     * 7. Maximum Interviews Per Day
      * Pseudo Rules:
      * For each new interview record (insert or update)
      *     Find interviews for the same interviewer on the same date.
@@ -119,6 +181,4 @@ public with sharing class EventHandler {
      *         "This interviewer already has 3 interviews scheduled for this date.
      *          Please select a different date."
      */
-    // TODO: validateMaxInterviewsPerDay()
-
-}
+    }
