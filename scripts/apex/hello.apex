@@ -5,11 +5,7 @@
 // You can also execute the entire file by running the command:
 //     SFDX: Execute Anonymous Apex with Editor Contents
 // Query events that already exist in the org
-Date tomorrow = System.today().addDays(1);
-DateTime tomorrowStart = DateTime.newInstance(tomorrow, Time.newInstance(0, 0, 0, 0));
-DateTime tomorrowEnd = DateTime.newInstance(tomorrow, Time.newInstance(23, 59, 59, 0));
-List<Event> tomorrowEvents = [SELECT Id, Subject, StartDateTime FROM Event WHERE StartDateTime >= :tomorrowStart AND StartDateTime <= :tomorrowEnd];
-System.debug('Interviews found for tomorrow: ' + tomorrowEvents.size());
-for (Event evt : tomorrowEvents) {
-    System.debug('Interview: ' + evt.Subject + ' at ' + evt.StartDateTime);
-}
+List<Event> cleanup = [SELECT Id, Subject FROM Event WHERE Subject = 'Debug Test Interview'];
+System.debug('Events to delete: ' + cleanup.size());
+delete cleanup;
+System.debug('Cleanup done');
