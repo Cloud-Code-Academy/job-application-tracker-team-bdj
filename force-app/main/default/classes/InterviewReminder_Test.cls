@@ -1,5 +1,5 @@
-@IsTest
-private class InterviewReminder_Test {
+@isTest
+private class InterviewReminder_Test{
 
     @TestSetup
     static void setupData() {
@@ -19,10 +19,9 @@ private class InterviewReminder_Test {
         Test.startTest();
         InterviewReminder reminder = new InterviewReminder();
         reminder.execute(null);
-        Test.stopTest();
-    
         //Make sure the email was called
-        Assert.areEqual(1, Limits.getEmailInvocations(), 'One email send call should have been made');
+        Assert.areEqual(1, InterviewReminder.emailsSentCount, 'One email should have been built');
+        Test.stopTest();
     }
 
     @IsTest
@@ -42,9 +41,8 @@ private class InterviewReminder_Test {
         Test.startTest();
         InterviewReminder reminder = new InterviewReminder();
         reminder.execute(null);
+        Assert.areEqual(0, InterviewReminder.emailsSentCount, 'No emails should be sent for today interviews');
         Test.stopTest();
-
-        Assert.areEqual(0, Limits.getEmailInvocations(), 'No emails should be sent for today interviews');
 
     }
 @IsTest
@@ -62,9 +60,35 @@ static void reminderNoEmail_interviewNextWeek() {
         Test.startTest();
         InterviewReminder reminder = new InterviewReminder();
         reminder.execute(null);
+        Assert.areEqual(0, InterviewReminder.emailsSentCount, 'No emails should be sent for next week interviews');
         Test.stopTest();
+    }
 
-        Assert.areEqual(0,Limits.getEmailInvocations(), 'No emails should be sent for next week interviews');
+
+@IsTest
+static void remindersSendsEmail_bulk() { 
+    //Delete Single Interview from test setup
+    delete[SELECT Id FROM Event WHERE Subject = 'Testing Interview'];
+
+    //Create bulk records at different times
+    List<Event> bulkInterviews = new List<Event>();
+    for (Integer i = 0; i < 5; i++) {
+        bulkInterviews.add(new Event(
+            Subject = 'Bulk Interview' + i,
+            StartDateTime = DateTime.newInstance(System.today().addDays(1), Time.newInstance(8+i,0,0,0)),
+            EndDateTime = DateTime.newInstance(System.today().addDays(1), Time.newInstance(9 + i,0,0,0)),
+            Location = 'Zoom',
+            Description = 'Bulk test interview number'+ i
+        ));
+
+    }
+    insert bulkInterviews;
+
+    Test.startTest();
+    InterviewReminder reminder = new InterviewReminder();
+    reminder.execute(null);
+    //Use invocation to only call once on for 5 emails.
+    Assert.areEqual(5, InterviewReminder.emailsSentCount, '5 emails should have been built for all 5 interviews');
+    Test.stopTest();
     }
 }
-

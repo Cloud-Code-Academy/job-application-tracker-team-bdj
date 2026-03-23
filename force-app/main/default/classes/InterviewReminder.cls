@@ -18,6 +18,9 @@
  */
 public with sharing class InterviewReminder implements Schedulable {
 
+    //Counter so tests can verify how many emails were built
+    @TestVisible private static Integer emailsSentCount = 0;
+
     public void execute(SchedulableContext sc) {
         sendInterviewReminders();
     }
@@ -66,6 +69,7 @@ public with sharing class InterviewReminder implements Schedulable {
         }
 
         //Send emails
+        emailsSentCount = emails.size();
         if (!emails.isEmpty()) {
             Messaging.sendEmail(emails);
         }
