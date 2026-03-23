@@ -5,7 +5,7 @@
  * 1.No conflicts, two completely different times
  * 2.Exact same time 
  * 3.Partial time overlap
- * 4. back to back (SHould be ok unless we want to add the buffer time) 
+ * 4. back to back (Should be ok unless we want to add the buffer time) 
  * 5. Bulk Insert
  */
 @IsTest
@@ -63,7 +63,7 @@ static void overlap_conflict_exactSameTime(){
 try{
     insert event2;
     Assert.fail('Expected an error because the events overlap completely.');
-}catch(DMLException error) {
+}catch(DmlException error) {
     Assert.isTrue(
         error.getMessage().contains('This interview time conflicts'),
         'Error message should mention the conflict. Got: ' + error.getMessage()

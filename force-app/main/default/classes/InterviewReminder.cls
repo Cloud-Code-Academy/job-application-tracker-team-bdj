@@ -1,5 +1,5 @@
 /**
- * InterviewReminderScheduler
+ * InterviewReminder
  * Scheduled Apex class that sends email reminders the day before an interview.
  * 
  * Implements the Schedulable interface so it can be scheduled via Setup or Apex:
