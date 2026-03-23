@@ -36,7 +36,7 @@ public with sharing class EventHandler{
         for (Event evt : newEvents) {
             ownerIds.add(evt.OwnerId);
         }
-    
+    System.debug('<<< getExistingEvents | Owner IDs collected'+ownerIds);
     
         /* Now that we have all of our currently booked interviews we need to
         look through them to see if they have a start time that is before an 

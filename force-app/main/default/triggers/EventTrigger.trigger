@@ -11,6 +11,8 @@
  */
 trigger EventTrigger on Event (before insert, before update) {
 
+    System.debug('>>> EventTrigger fired | Operation: ' + Trigger.operationType + ' | Records: ' + Trigger.new.size());
+
     switch on Trigger.operationType {
 
        
