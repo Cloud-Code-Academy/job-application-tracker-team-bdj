@@ -27,7 +27,7 @@ private class CleanUpStaleJobApplicationsQueueableTest {
         // TO DO: implement unit test
 
         // Set and old date and a new date for follow up
-        Date oldDate = Date.today().addDays(-31);
+        Date oldDate = Date.today().addDays(-40);
         Date newDate = Date.today().addDays(-10);
 
         // Create Job Applications with test data
@@ -72,16 +72,12 @@ private class CleanUpStaleJobApplicationsQueueableTest {
 
           // Set the status after insert to account for validation rule
           for (Job_Application__c jobApp : jobAppList) {
-            if (jobApp.Name ==  'Old Test') {
-                jobApp.Status__c = 'Closed';
-            }
-
             if (jobApp.Name ==  'Accepted Test') {
                 jobApp.Status__c = 'Accepted';
             }
           }
 
-          // Update the job applications to Closed and Accepted
+          // Update the job application Accepted
           update jobAppList;
           
         Test.startTest();
@@ -99,8 +95,8 @@ private class CleanUpStaleJobApplicationsQueueableTest {
         
         // Old record should be closed
         System.assertEquals('Closed', results.get('Old Test').Status__c);
-        System.assert(results.get('Old Test').Notes__c.contains('This job application has been closed by an automated process.'));
-        
+        System.assertEquals('This job application has been closed by an automated process.', results.get('Old Test').Notes__c);        
+       
         // New record should not be closed
         System.assertNotEquals('Closed', results.get('New Test').Status__c);
           
