@@ -39,6 +39,8 @@ public with sharing class InterviewReminder implements Schedulable {
             AND StartDateTime <= :tomorrowEnd
         ];
 
+        System.debug('Interviews found for tomorrow: ' + interviews.size());
+
         //Collect Owner Ids to get email
         Set<Id> ownerIds = new Set<Id>();
         for (Event evt : interviews) {
@@ -70,6 +72,7 @@ public with sharing class InterviewReminder implements Schedulable {
 
         //Send emails
         emailsSentCount = emails.size();
+        System.debug('Emails to send: ' + emails.size());
         if (!emails.isEmpty()) {
             Messaging.sendEmail(emails);
         }
