@@ -5,14 +5,11 @@
 // You can also execute the entire file by running the command:
 //     SFDX: Execute Anonymous Apex with Editor Contents
 // Query events that already exist in the org
-try {
-    Event event2 = new Event(
-        Subject = 'Overlapping Interview',
-        StartDateTime = DateTime.newInstance(System.today().addDays(1), Time.newInstance(9, 30, 0, 0)),
-        EndDateTime = DateTime.newInstance(System.today().addDays(1), Time.newInstance(10, 30, 0, 0))
-    );
-    insert event2;
-    System.debug('Event 2 inserted (overlap was NOT caught)');
-} catch (DmlException e) {
-    System.debug('Overlap caught: ' + e.getMessage());
+Date tomorrow = System.today().addDays(1);
+DateTime tomorrowStart = DateTime.newInstance(tomorrow, Time.newInstance(0, 0, 0, 0));
+DateTime tomorrowEnd = DateTime.newInstance(tomorrow, Time.newInstance(23, 59, 59, 0));
+List<Event> tomorrowEvents = [SELECT Id, Subject, StartDateTime FROM Event WHERE StartDateTime >= :tomorrowStart AND StartDateTime <= :tomorrowEnd];
+System.debug('Interviews found for tomorrow: ' + tomorrowEvents.size());
+for (Event evt : tomorrowEvents) {
+    System.debug('Interview: ' + evt.Subject + ' at ' + evt.StartDateTime);
 }
