@@ -29,14 +29,13 @@ public with sharing class EventHandler{
      *             "This interview conflicts with another interview scheduled
      *              for this interviewer. Please select a different time."
      */
-    public static List<Event> getExistingEvents(List<Event> newEvents) {
+    private static List<Event> getExistingEvents(List<Event> newEvents) {
         
         //Look through the interviews already scheduled and get the owner Id//
         Set<Id> ownerIds = new Set<Id>();
         for (Event evt : newEvents) {
             ownerIds.add(evt.OwnerId);
         }
-    
     
         /* Now that we have all of our currently booked interviews we need to
         look through them to see if they have a start time that is before an 
@@ -57,7 +56,7 @@ public with sharing class EventHandler{
     public static void validateNoOverlappingEvents(List<Event> newEvents) {
 
         /*Call the method from above "ExistingEvents" to get existing
-        events and loop throught them*/
+        events and loop through them*/
         List<Event> existingEvents = getExistingEvents(newEvents);
 
         //This is where you would look through each event the user is trying to book.
@@ -67,7 +66,7 @@ public with sharing class EventHandler{
         Long newStartMinutes = newEvt.StartDateTime.getTime() / 60000;
         Long newEndMinutes = newEvt.EndDateTime.getTime() / 60000;
         
-        //No we can look through everything in our data to see if we find matches.
+        //Now we can look through everything in our data to see if we find matches.
         //And have it skip itself if it is the same ID.  
 
         for (Event existingEvt : existingEvents) {
@@ -76,7 +75,7 @@ public with sharing class EventHandler{
                 continue;
             }
 
-            // convert the existing event time to minutesd
+            // convert the existing event time to minutes
 
             Long existingStartMinutes = existingEvt.StartDateTime.getTime()/ 60000;
             Long existingEndMinutes = existingEvt.EndDateTime.getTime()/ 60000;
@@ -87,7 +86,7 @@ public with sharing class EventHandler{
             
             if (newStartMinutes < existingEndMinutes && newEndMinutes > existingStartMinutes) {
                 newEvt.addError(
-                    'This interview time conflicts with another meeting scheduled.' + 
+                    'This interview time conflicts with another meeting scheduled. ' + 
                     'Please select a different time.'
                 );
                 break;

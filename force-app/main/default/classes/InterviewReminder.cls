@@ -1,5 +1,5 @@
 /**
- * InterviewReminderScheduler
+ * InterviewReminder
  * Scheduled Apex class that sends email reminders the day before an interview.
  * 
  * Implements the Schedulable interface so it can be scheduled via Setup or Apex:
@@ -17,6 +17,9 @@
  * "with sharing" enforces the running user's record-level security.
  */
 public with sharing class InterviewReminder implements Schedulable {
+
+    //Counter so tests can verify how many emails were built
+    @TestVisible private static Integer emailsSentCount = 0;
 
     public void execute(SchedulableContext sc) {
         sendInterviewReminders();
@@ -66,6 +69,7 @@ public with sharing class InterviewReminder implements Schedulable {
         }
 
         //Send emails
+        emailsSentCount = emails.size();
         if (!emails.isEmpty()) {
             Messaging.sendEmail(emails);
         }
