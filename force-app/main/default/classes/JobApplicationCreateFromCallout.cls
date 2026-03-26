@@ -27,7 +27,6 @@ public with sharing class JobApplicationCreateFromCallout {
         JoobleResponse joobleData = (JoobleResponse) JSON.deserialize(jsonResponse, JoobleResponse.class);
 
         if (joobleData.jobs == null || joobleData.jobs.isEmpty()){
-            System.debug('JoobleCallout: Deserialization succeeded but no jobs were returned. Total count: ' + joobleData.totalCount);
             return;
         }
 

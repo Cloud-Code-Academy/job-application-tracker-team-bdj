@@ -36,7 +36,6 @@ public with sharing class EventHandler{
         for (Event evt : newEvents) {
             ownerIds.add(evt.OwnerId);
         }
-        System.debug('Owner IDs: ' + ownerIds);
     
         /* Now that we have all of our currently booked interviews we need to
         look through them to see if they have a start time that is before an 
@@ -51,7 +50,6 @@ public with sharing class EventHandler{
 
     ];
 
-      System.debug('Found existing events: ' + existingEvents.size());
       return existingEvents;
     }
 
@@ -67,8 +65,6 @@ public with sharing class EventHandler{
         // now convert the new event time to minutes
         Long newStartMinutes = newEvt.StartDateTime.getTime() / 60000;
         Long newEndMinutes = newEvt.EndDateTime.getTime() / 60000;
-
-        System.debug('Checking event: ' + newEvt.Subject + ' | ' + newEvt.StartDateTime + ' to ' + newEvt.EndDateTime);
         
         //Now we can look through everything in our data to see if we find matches.
         //And have it skip itself if it is the same ID.  
@@ -89,7 +85,6 @@ public with sharing class EventHandler{
           *prevent it from happening and display an error message.*/
             
             if (newStartMinutes < existingEndMinutes && newEndMinutes > existingStartMinutes) {
-                System.debug('Overlap found with event: ' + existingEvt.Id);
                 newEvt.addError(
                     'This interview time conflicts with another meeting scheduled. ' + 
                     'Please select a different time.'

@@ -16,8 +16,6 @@ public with sharing class JoobleCallout implements Queueable, Database.AllowsCal
         // Call JobApplicationCreateFromCallout.createJobAppFromJson to actually build the job apps
         if(response.getStatusCode() >= 200 && response.getStatusCode() <= 299){
             JobApplicationCreateFromCallout.createJobAppFromJson(response.getBody());
-        } else {
-            System.debug('Jooble callout failed. Status: ' + response.getStatusCode() + ' Body: ' + response.getBody());
         }
 
     }
