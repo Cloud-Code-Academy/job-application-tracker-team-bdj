@@ -95,7 +95,7 @@ private class CleanUpStaleJobApplicationsQueueableTest {
         
         // Old record should be closed
         System.assertEquals('Closed', results.get('Old Test').Status__c);
-        System.assertEquals('This job application has been closed by an automated process.', results.get('Old Test').Notes__c);        
+        System.assert(results.get('Old Test').Notes__c.contains('This job application has been closed by an automated process'));        
        
         // New record should not be closed
         System.assertNotEquals('Closed', results.get('New Test').Status__c);

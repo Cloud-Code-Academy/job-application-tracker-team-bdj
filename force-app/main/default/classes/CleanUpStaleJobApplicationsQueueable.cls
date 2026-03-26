@@ -15,7 +15,19 @@ public with sharing class CleanUpStaleJobApplicationsQueueable implements Queuea
         // Loop through the stale job apps, update the status to Closed, add a note to the job application
         for (Job_Application__c jobAppsToUpdate : staleJobApps) {
             jobAppsToUpdate.Status__c = 'Closed';
-            jobAppsToUpdate.Notes__c = 'This job application has been closed by an automated process.';
+
+            // Setting the closed comment to app has been closed plus date
+            String closedComment = 'This job application has been closed by an automated process on ' + String.valueOf(Date.today()) + '.';
+
+            // If there is no note, add the closed comment
+            if (String.isBlank(jobAppsToUpdate.Notes__c)) {
+                jobAppsToUpdate.Notes__c = closedComment;
+            }
+
+            // If there is a note, add a new line and the closed comment
+            else {
+                jobAppsToUpdate.Notes__c += '\n\n' + closedComment;
+            }
         }
 
         // If there are stale job apps, update them
