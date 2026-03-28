@@ -8,6 +8,7 @@
  * 4. back to back (Should be ok unless we want to add the buffer time) 
  * 5. Bulk Insert
  */
+
 @IsTest
 private class EventHandler_Test {
 
@@ -65,8 +66,8 @@ try{
     Assert.fail('Expected an error because the events overlap completely.');
 }catch(DmlException error) {
     Assert.isTrue(
-        error.getMessage().contains('This interview time conflicts'),
-        'Error message should mention the conflict. Got: ' + error.getMessage()
+        error.getMessage().contains('buffer'),
+        'Error message should mention the buffer conflict. Got: ' + error.getMessage()
     );
     }
     Test.stopTest();
@@ -97,8 +98,8 @@ try{
             Assert.fail('Expected an error because the events partially overlap.');
         } catch (DmlException error) {
             Assert.isTrue(
-                error.getMessage().contains('This interview time conflicts'),
-                'Error message should mention the conflict. Got: ' + error.getMessage()
+                error.getMessage().contains('buffer'),
+                'Error message should mention the buffer conflict. Got: ' + error.getMessage()
            
             );
         }
@@ -116,11 +117,11 @@ static void overlap_noConflict_backToBack() {
         );
         insert event1;
         
-        //Creating an event that starts at the exact same time as an end time. 
+        //Creating an event that starts 30 mins after the first ends (respecting buffer). 
         Event event2 = new Event( 
             Subject = 'Interview 2',
-            StartDateTime = Datetime.newInstance(2025,1,6,10,0,0),
-            EndDateTime = Datetime.newinstance(2025,1,6,11,0,0)       
+            StartDateTime = Datetime.newInstance(2025,1,6,10,30,0),
+            EndDateTime = Datetime.newinstance(2025,1,6,11,30,0)       
         );
 
 Test.startTest();
@@ -193,7 +194,7 @@ static void duration_rejection_90mins() {
 @IsTest
 static void businessHours_reject_tooEarly() {
     Event evt = new Event(
-        Subject ='Before business hours',
+        Subject ='Interview Before Hours',
         StartDateTime = DateTime.newInstance(2025,1,6,7,0,0),
         EndDateTime = DateTime.newInstance(2025,1,6,8,0,0)
     );
@@ -342,8 +343,8 @@ static void maxPerDay_reject_fourthEvent() {
         Assert.fail('Expected an error because this is the 4th interview today.');
     } catch (DmlException error) {
         Assert.isTrue(
-            error.getMessage().contains('3'),
-            'Error should mention 3 interviews. Got: ' + error.getMessage()
+            error.getMessage().contains('three'),
+            'Error should mention three interviews. Got: ' + error.getMessage()
         );
     }
     Test.stopTest();
