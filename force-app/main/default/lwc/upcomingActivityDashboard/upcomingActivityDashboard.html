@@ -1,6 +1,26 @@
 <template>
     <lightning-card title="Upcoming Activity Dashboard" icon-name="standard:event">
-
+    <!-- Filters -->
+    <div class="slds-m-around_medium">
+        <lightning-layout multiple-rows>
+            <lightning-layout-item size="6" padding="around-small">
+                    <lightning-combobox
+                    label="Time Range"
+                     value={selectedRange}
+                    options={rangeOptions}
+                    onchange={handleRangeChange}>
+                    </lightning-combobox>
+            </lightning-layout-item>
+                <lightning-layout-item size="6" padding="around-small">
+                    <lightning-combobox
+                         label="Task Status"
+                         value={selectedStatus}
+                         options={statusOptions}
+                         onchange={handleStatusChange}>
+                </lightning-combobox>
+            </lightning-layout-item>
+        </lightning-layout>
+    </div>
         <!-- Interviews Section -->
         <div class="slds-m-around_medium">
             <h2 class="slds-text-heading_small slds-m-bottom_small">Upcoming Interviews</h2>
@@ -24,7 +44,7 @@
             <h2 class="slds-text-heading_small slds-m-bottom_small">Upcoming Tasks</h2>
 
             <template if:true={hasTasks}>
-                <template for:each={tasks} for:item="task">
+                <template for:each={filteredTasks} for:item="task">
                     <div key={task.Id} class="slds-box slds-m-bottom_x-small">
                         <p><strong>{task.Subject}</strong></p>
                         <p>{task.FormattedDate} - {task.Status}
