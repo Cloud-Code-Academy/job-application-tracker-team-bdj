@@ -227,5 +227,43 @@ static void businessHours_allow_withinHours() {
     Assert.areEqual(1,allEvents.size(),'An interview during business hours is allowed');
 
 }
+@IsTest 
+static void weekend_reject_saturday() {
+    Event evt =new Event(
+        Subject = 'Saturday Interview',
+        StartDateTime = DateTime.newInstance(2025,1,4,9,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,4,10,0,0)
+
+    );
+
+    Test.startTest();
+    try{
+        insert evt;
+        Assert.fail('Expect an error because the interview in on Saturday');
+    } catch (DMLException error) {
+        Assert.isTrue(
+        error.getMessage().contains('weekend'),
+        'Error should mention weekends. Got:' + error.getMessage()
+        );
+
+    }
+    Test.stopTest();  
+}
+
+@IsTest 
+static void weekend_allow_weekday() {
+    Event evt = new Event(
+        Subject = 'Monday Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
+        EndDateTime= DateTime.newInstance(2025,1,6,10,0,0)
+    );
+
+    Test.startTest();
+    insert evt;
+    Test.stopTest();
+
+    List<Event> allEvents = [SELECT Id FROM Event];
+    Assert.areEqual(1,allEvents.size(), 'A weekday should be allowed');
+}
 
 }
