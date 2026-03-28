@@ -80,9 +80,7 @@ public with sharing class EventHandler{
             Long existingStartMinutes = existingEvt.StartDateTime.getTime()/ 60000;
             Long existingEndMinutes = existingEvt.EndDateTime.getTime()/ 60000;
 
-         /* Final part of checking for over lapping. "If new interview start time is before existing interview end time
-          *AND new interview end time is after existing interview start time prevent the interview from being booked
-          *prevent it from happening and display an error message.*/
+         // Final part of checking for over lapping
             
             if (newStartMinutes < existingEndMinutes && newEndMinutes > existingStartMinutes) {
                 newEvt.addError(
@@ -96,37 +94,41 @@ public with sharing class EventHandler{
     }
     }
     
-     /* 2. Fixed Interview Duration
-     * Pseudo Rules:
-     * For each interview record
-     *     Calculate the duration between start and end time.
-     *     If the duration is longer or shorter than 60 minutes
-     *         Prevent the system from saving.
-     *         Display an error message:
-     *         "Interviews must be scheduled for exactly 60 minutes."
-     */
-    // TODO: validateFixedDuration()
-private static void validateFixedDuration(List<Event> newEvents) {
+     // 2. Fixed Interview Duration
 
+public static void validateFixedDuration(List<Event> newEvents) {
+            System.debug('Checking event duration');
+        for(Event evt: newEvents) {
+            Long startMinutes = evt.StartDateTime.getTime()/60000;
+            Long endMinutes = evt.EndDateTime.getTime() / 60000;
+            Long durationMinutes = endMinutes - startMinutes;
+            System.debug('Duration:' + durationMinutes + 'minutes');
+    
+        if (durationMinutes != 60) {
+
+        evt.addError ('Interviews can only be scheduled for 60 mins.');
+
+        }
+    }
 }
 
     /*
      * 3. Business Hours Restriction
-     * Pseudo Rules:
-     * For each new interview record
-     *     If start time is before 8:00 AM
-     *         Prevent the interview from being saved.
-     *         Display error: "Interviews must be scheduled between 8:00 AM and 5:00 PM."
-     *     If end time is after 5:00 PM
-     *         Prevent the interview from being saved.
-     *         Display error: "Interviews must be scheduled between 8:00 AM and 5:00 PM."
-     *
      * Note: Time zone awareness is handled natively by Salesforce DateTime fields.
      * DateTime values are stored in UTC and displayed in each user's local time zone.
+     * Strictly using this for the sake of building code
      */
     // TODO: validateBusinessHours()
-
-
+public static void validateBusinessHours(List<Event> newEvents) {
+    for (Event evt: newEvents) {
+        Integer startHour = evt.StartDateTime.hour();
+        Integer endHour = evt.EndDateTime.hour();
+System.debug('Start hour:' + startHour + ' | End hour: ' + endHour);
+        if(startHour < 8 || endHour > 17) {
+            evt.addError('Interviews have to be scheduled between 8am and 5pm.');
+        }
+    }
+}
     /*
      * 5. No Weekend Scheduling
      * Pseudo Rules:
@@ -136,6 +138,18 @@ private static void validateFixedDuration(List<Event> newEvents) {
      *         Display error: "Interviews cannot be scheduled on weekends."
      */
     // TODO: validateNoWeekendEvents()
+
+public static void validateNoWeekendEvents (List<Event> newEvents) {
+    System.debug('Checking for weekend interviews');
+    for (Event evt : newEvents) {
+        String dayOfWeek = evt.StartDateTime.format('EEEE');
+        System.debug('Day of week:' + dayOfWeek);
+
+        if( dayOfWeek == 'Saturday' || dayOfWeek == 'Sunday') {
+            evt.affError('Cannot schedule interviews on the weekend');
+        }
+    }
+}
 
 
     /// *** SHARED SOQL QUERY *** ///
@@ -182,4 +196,4 @@ private static void validateFixedDuration(List<Event> newEvents) {
      *         "This interviewer already has 3 interviews scheduled for this date.
      *          Please select a different date."
      */
-    }
+}
