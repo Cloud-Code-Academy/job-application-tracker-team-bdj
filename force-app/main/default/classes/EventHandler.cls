@@ -106,7 +106,9 @@ public with sharing class EventHandler{
      *         "Interviews must be scheduled for exactly 60 minutes."
      */
     // TODO: validateFixedDuration()
+private static void validateFixedDuration(List<Event> newEvents) {
 
+}
 
     /*
      * 3. Business Hours Restriction
