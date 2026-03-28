@@ -366,3 +366,29 @@ static void maxPerDay_allow_threeEvents() {
     
     List<Event> allEvents = [SELECT Id FROM Event];
     Assert.areEqual(3, allEvents.size(), 'Three interviews in one day should be allowed.');
+}
+@Istest 
+static void update_reject_invalidChange() {
+    Event evt = new Event(
+        Subject = 'Valid Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,10,0,0)
+    );
+    insert evt;
+
+    evt.EndDateTime = DateTime.newInstance(2025,1,6,11,0,0);
+
+    Test.startTest();
+    try{
+        update evt;
+     Assert.fail('Expected an error because the epdated event is 120 mins');
+    } catch (DMLException error) {
+        
+        Assert.isTrue(
+            error.getMessage().contains('60'),
+            'Error should mention 60 mins. Got:' + error.getMessage()
+        );
+    }
+    Test.stopTest();
+}
+}
