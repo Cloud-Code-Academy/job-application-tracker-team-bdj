@@ -7,7 +7,7 @@
 
             <template if:true={hasInterviews}>
                 <template for:each={interviews} for:item="interview">
-                    <div key={interview.id} class="slds-box slds-m-bottom_x-small">
+                    <div key={interview.Id} class="slds-box slds-m-bottom_x-small">
                         <p><strong>{interview.Subject}</strong></p>
                         <p>{interview.FormattedDate}</p>
                     </div>
@@ -27,7 +27,7 @@
                 <template for:each={tasks} for:item="task">
                     <div key={task.Id} class="slds-box slds-m-bottom_x-small">
                         <p><strong>{task.Subject}</strong></p>
-                        <p>{task.FormattedDate} — {task.status}
+                        <p>{task.FormattedDate} - {task.Status}
                             <template if:true={task.RelatedTo}>
                                 | {task.RelatedTo}
                             </template>

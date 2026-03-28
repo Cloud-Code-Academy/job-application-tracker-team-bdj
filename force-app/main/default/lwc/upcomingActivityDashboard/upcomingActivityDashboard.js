@@ -1,10 +1,8 @@
-// Import the base LightningElement class and the wire decorator
-// wire automatically calls our Apex methods when the component loads
 import { LightningElement, wire } from 'lwc';
 
-// Import our two Apex methods from the controller we just created
+//import files
 import getUpcomingInterviews from '@salesforce/apex/UpcomingActivityController.getUpcomingInterviews';
-import getUpcomingTasks from '@salesforce/apex/upcomingActivityController.getUpcomingTasks';
+import getUpcomingTasks from '@salesforce/apex/UpcomingActivityController.getUpcomingTasks';
 
 export default class UpcomingActivityDashboard extends LightningElement {
 
@@ -48,7 +46,7 @@ export default class UpcomingActivityDashboard extends LightningElement {
                 ActivityDate: task.ActivityDate,
                 Status: task.Status,
                 Priority: task.Priority,
-                RelatedTo: task.What.Name,
+                RelatedTo: task.What?.Name || '',
                 FormattedDate: new Date(task.ActivityDate + 'T00:00:00').toLocaleString('en-US', {
                     weekday: 'short',
                     month: 'short',
