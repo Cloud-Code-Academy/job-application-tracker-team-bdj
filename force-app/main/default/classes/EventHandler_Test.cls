@@ -190,4 +190,42 @@ static void duration_rejection_90mins() {
         }
         Test.stopTest();
     }
+@IsTest
+static void businessHours_reject_tooEarly() {
+    Event evt = new Event(
+        Subject ='Before business hours',
+        StartDateTime = DateTime.newInstance(2025,1,6,7,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,8,0,0)
+    );
+
+    Test.startTest();
+    try{
+        insert evt;
+        Assert.fail('Expect an error because the interview starts before 8am.');
+    }catch (DMLException error) {
+        Assert.isTrue(
+            error.getMessage().contains('8'),
+            'Error should mention business hours. Got:' +error.getMessage()
+            );
+    }
+    Test.stopTest();
+}
+
+@IsTest
+static void businessHours_allow_withinHours() {
+    Event evt = new Event(
+        Subject = 'Normal Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,10,0,0)
+    );
+
+    Test.startTest();
+    insert evt;
+    Test.stopTest();
+
+    List<Event> allEvents = [SELECT Id FROM Event];
+    Assert.areEqual(1,allEvents.size(),'An interview during business hours is allowed');
+
+}
+
 }
