@@ -198,7 +198,6 @@ System.debug ('Checking buffer time');
     }
 
 
-
     /*
      * 7. Maximum Interviews Per Day
      * Pseudo Rules:
@@ -211,4 +210,32 @@ System.debug ('Checking buffer time');
      *         "This interviewer already has 3 interviews scheduled for this date.
      *          Please select a different date."
      */
+public static void validateMaxPerDay (List<Event> newEvents) {
+    System.debug('Check for max interview in a day');
+    List<Event> existingEvents = getExistingEvents(newEvents);
+
+    for (Event newEvt : newEvents) {
+        Date eventDate = newEvt.StartDateTime.date();
+        Integer count = 0;
+
+        for (Event existingEvt : existingEvents) {
+            if(existingEvt.Id == newEvt.Id) {
+              continue;
+            }
+            if(existingEvt.OwnerId == newEvt.OwnerId
+            && existingEvt.StartDateTime.date()== eventDate){
+                count++;
+        }
+    }
+    System.debug('Events on' + eventDate + 'for this owner:' + count);
+
+        if (count >= 3) {
+            newEvt.addError(
+                'This interviewer already has three interviews scheduled for this date.' +
+                'Please Select a different date.'
+            );
+        }
+    }
+}
+
 }
