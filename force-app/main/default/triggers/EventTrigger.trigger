@@ -22,13 +22,13 @@ trigger EventTrigger on Event (before insert, before update) {
         }
 
     }
+
     if (interviewEvents.isEmpty()) {
         return;
     }
-            switch on Trigger.opperationType {
-
             
-        when BEFORE_INSERT {
+        switch on Trigger.operationType {
+            when BEFORE_INSERT {
             EventHandler.validateFixedDuration(interviewEvents);
             EventHandler.validateBusinessHours(interviewEvents);
             EventHandler.validateNoWeekendEvents(interviewEvents);
