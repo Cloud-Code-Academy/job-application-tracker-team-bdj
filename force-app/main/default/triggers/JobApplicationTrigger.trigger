@@ -22,5 +22,4 @@ trigger JobApplicationTrigger on Job_Application__c (before insert, after insert
         when AFTER_UNDELETE {}
 
     }
-
 }
