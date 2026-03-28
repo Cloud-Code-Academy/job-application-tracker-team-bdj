@@ -80,9 +80,7 @@ public with sharing class EventHandler{
             Long existingStartMinutes = existingEvt.StartDateTime.getTime()/ 60000;
             Long existingEndMinutes = existingEvt.EndDateTime.getTime()/ 60000;
 
-         /* Final part of checking for over lapping. "If new interview start time is before existing interview end time
-          *AND new interview end time is after existing interview start time prevent the interview from being booked
-          *prevent it from happening and display an error message.*/
+         // Final part of checking for over lapping
             
             if (newStartMinutes < existingEndMinutes && newEndMinutes > existingStartMinutes) {
                 newEvt.addError(
@@ -96,88 +94,103 @@ public with sharing class EventHandler{
     }
     }
     
-     /* 2. Fixed Interview Duration
-     * Pseudo Rules:
-     * For each interview record
-     *     Calculate the duration between start and end time.
-     *     If the duration is longer or shorter than 60 minutes
-     *         Prevent the system from saving.
-     *         Display an error message:
-     *         "Interviews must be scheduled for exactly 60 minutes."
-     */
-    // TODO: validateFixedDuration()
+     // 2. Fixed Interview Duration
 
+public static void validateFixedDuration(List<Event> newEvents) {
+        
+        for(Event evt: newEvents) {
+            Long startMinutes = evt.StartDateTime.getTime()/60000;
+            Long endMinutes = evt.EndDateTime.getTime() / 60000;
+            Long durationMinutes = endMinutes - startMinutes;
+    
+        if (durationMinutes != 60) {
 
-    /*
-     * 3. Business Hours Restriction
-     * Pseudo Rules:
-     * For each new interview record
-     *     If start time is before 8:00 AM
-     *         Prevent the interview from being saved.
-     *         Display error: "Interviews must be scheduled between 8:00 AM and 5:00 PM."
-     *     If end time is after 5:00 PM
-     *         Prevent the interview from being saved.
-     *         Display error: "Interviews must be scheduled between 8:00 AM and 5:00 PM."
-     *
-     * Note: Time zone awareness is handled natively by Salesforce DateTime fields.
-     * DateTime values are stored in UTC and displayed in each user's local time zone.
-     */
-    // TODO: validateBusinessHours()
+        evt.addError ('Interviews can only be scheduled for 60 mins.');
 
-
-    /*
-     * 5. No Weekend Scheduling
-     * Pseudo Rules:
-     * For each new interview record
-     *     If start date falls on Saturday or Sunday
-     *         Prevent the interview from being saved.
-     *         Display error: "Interviews cannot be scheduled on weekends."
-     */
-    // TODO: validateNoWeekendEvents()
-
-
-    /// *** SHARED SOQL QUERY *** ///
-
-
-    /*
-     * getExistingEvents — Shared query method used by overlap, buffer, and max-per-day.
-     * Queries existing Event records for the same interviewer(s) within the relevant
-     * date range. One query feeds all three validations to stay under governor limits.
-     */
-    // TODO: getExistingEvents()
-
-
-    /// *** VALIDATION METHODS (Require SOQL) *** ///
-
-
-
-    /*
-     * 6. Interview Buffer Time
-     * Pseudo Rules:
-     * For each new interview record
-     *     Find existing interviews for the same interviewer.
-     *     For each existing interview
-     *         Expand existing event by 30 minutes on both ends
-     *         (subtract 30 min from start, add 30 min to end)
-     *         If new event overlaps with the expanded time range
-     *             Prevent the interview from being booked.
-     *             Display an error message:
-     *             "Interviews must have a 30-minute buffer between meetings.
-     *              Please select a later time."
-     */
-    // TODO: validateBufferTime()
-
-
-    /*
-     * 7. Maximum Interviews Per Day
-     * Pseudo Rules:
-     * For each new interview record (insert or update)
-     *     Find interviews for the same interviewer on the same date.
-     *     Count the number of existing interviews.
-     *     If the number of total interviews is greater than or equal to 3
-     *         Prevent the interview from being saved.
-     *         Display an error message:
-     *         "This interviewer already has 3 interviews scheduled for this date.
-     *          Please select a different date."
-     */
+        }
     }
+}
+//Business Hours Restriction
+     
+public static void validateBusinessHours(List<Event> newEvents) {
+
+    for (Event evt: newEvents) {
+        Integer startHour = evt.StartDateTime.hour();
+        Integer endHour = evt.EndDateTime.hour();
+        if(startHour < 8 || endHour > 17) {
+            evt.addError('Interviews have to be scheduled between 8am and 5pm.');
+        }
+    }
+}
+//No Weekend Scheduling
+
+public static void validateNoWeekendEvents (List<Event> newEvents) {
+    for (Event evt : newEvents) {
+        String dayOfWeek = evt.StartDateTime.format('EEEE');
+
+        if( dayOfWeek == 'Saturday' || dayOfWeek == 'Sunday') {
+            evt.addError('Cannot schedule interviews on the weekend');
+        }
+    }
+}
+//Interview Buffer Time
+
+public static void validateBufferTime (List<Event> newEvents) {
+    List<Event> existingEvents = getExistingEvents(newEvents);
+
+    for (Event newEvt : newEvents) {
+        Long newStartMinutes = newEvt.StartDateTime.getTime()/60000;
+        Long newEndMinutes = newEvt.EndDateTime.getTime()/60000;
+
+        for(Event existingEvt : existingEvents) {
+            if( existingEvt.OwnerId != newEvt.OwnerId || existingEvt.Id == newEvt.Id) {
+                continue;
+            }
+
+            Long existingStartMinutes = existingEvt.StartDateTime.getTime() / 60000;
+            Long existingEndMinutes = existingEvt.EndDateTime.getTime() / 60000;
+
+            Long bufferedStart = existingStartMinutes - 30;
+            Long bufferedEnd = existingEndMinutes + 30;
+
+            if(newStartMinutes < bufferedEnd && newEndMinutes > bufferedStart) {
+                newEvt.addError(
+                    'Interviews need to have a 30 min buffer time betweeen them' +
+                    'to allow time to prep for the next interview.' +
+                    'Please select a new time.'
+                    );
+                    break;
+                }
+            }
+        }
+    }
+
+
+    //7. Maximum Interviews Per Day
+
+public static void validateMaxPerDay (List<Event> newEvents) {
+    List<Event> existingEvents = getExistingEvents(newEvents);
+
+    for (Event newEvt : newEvents) {
+        Date eventDate = newEvt.StartDateTime.date();
+        Integer count = 0;
+
+        for (Event existingEvt : existingEvents) {
+            if(existingEvt.Id == newEvt.Id) {
+              continue;
+            }
+            if(existingEvt.OwnerId == newEvt.OwnerId
+            && existingEvt.StartDateTime.date()== eventDate){
+                count++;
+        }
+    }
+        if (count >= 3) {
+            newEvt.addError(
+                'This interviewer already has three interviews scheduled for this date.' +
+                'Please Select a different date.'
+            );
+        }
+    }
+}
+
+}

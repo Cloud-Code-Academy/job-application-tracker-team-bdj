@@ -11,18 +11,39 @@
  */
 trigger EventTrigger on Event (before insert, before update) {
 
-    System.debug('>>> EventTrigger fired | Operation: ' + Trigger.operationType + ' | Records: ' + Trigger.new.size());
 
-    switch on Trigger.operationType {
+    //Validating only Events where Subject = "Interview"
 
-       
-        when BEFORE_INSERT {
-            EventHandler.validateNoOverlappingEvents(Trigger.new);     
+     List<Event> interviewEvents = new List<Event>();
+    for (Event evt : Trigger.new) {
+        if (evt.Subject != null && evt.Subject.contains('Interview')) {
+            interviewEvents.add(evt);
+        }
+
+    }
+
+    if (interviewEvents.isEmpty()) {
+        return;
+    }
+            
+        switch on Trigger.operationType {
+            when BEFORE_INSERT {
+            EventHandler.validateFixedDuration(interviewEvents);
+            EventHandler.validateBusinessHours(interviewEvents);
+            EventHandler.validateNoWeekendEvents(interviewEvents);
+            EventHandler.validateNoOverlappingEvents(interviewEvents);
+            EventHandler.validateBufferTime(interviewEvents);
+            EventHandler.validateMaxPerDay(interviewEvents);    
         }
 
       
         when BEFORE_UPDATE {
-            EventHandler.validateNoOverlappingEvents(Trigger.new);
+            EventHandler.validateFixedDuration(interviewEvents);
+            EventHandler.validateBusinessHours(interviewEvents);
+            EventHandler.validateNoWeekendEvents(interviewEvents);
+            EventHandler.validateNoOverlappingEvents(interviewEvents);
+            EventHandler.validateBufferTime(interviewEvents);
+            EventHandler.validateMaxPerDay(interviewEvents);
         }
     }
 }
