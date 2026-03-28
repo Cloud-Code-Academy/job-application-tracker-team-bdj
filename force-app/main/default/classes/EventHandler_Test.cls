@@ -319,4 +319,50 @@ Assert.areEqual(2, allEvents.size(), 'Events with 30 min buffers should be allow
 
 }
 @IsTest 
-static void 
+static void maxPerDay_reject_fourthEvent() {
+    List<Event> events = new List<Event>();
+    for (Integer i = 0; i < 3; i++) {
+        events.add(new Event(
+            Subject = 'Interview ' + i,
+            StartDateTime = DateTime.newInstance(2025, 1, 6, 8 + (i * 2), 0, 0),
+            EndDateTime = DateTime.newInstance(2025, 1, 6, 9 + (i * 2), 0, 0)
+        ));
+    }
+    insert events;
+    
+    Event fourthEvent = new Event(
+        Subject = 'Fourth Interview',
+        StartDateTime = DateTime.newInstance(2025, 1, 6, 15, 0, 0),
+        EndDateTime = DateTime.newInstance(2025, 1, 6, 16, 0, 0)
+    );
+    
+    Test.startTest();
+    try {
+        insert fourthEvent;
+        Assert.fail('Expected an error because this is the 4th interview today.');
+    } catch (DmlException error) {
+        Assert.isTrue(
+            error.getMessage().contains('3'),
+            'Error should mention 3 interviews. Got: ' + error.getMessage()
+        );
+    }
+    Test.stopTest();
+}
+
+@IsTest
+static void maxPerDay_allow_threeEvents() {
+    List<Event> events = new List<Event>();
+    for (Integer i = 0; i < 3; i++) {
+        events.add(new Event(
+            Subject = 'Interview ' + i,
+            StartDateTime = DateTime.newInstance(2025, 1, 6, 8 + (i * 2), 0, 0),
+            EndDateTime = DateTime.newInstance(2025, 1, 6, 9 + (i * 2), 0, 0)
+        ));
+    }
+    
+    Test.startTest();
+    insert events;
+    Test.stopTest();
+    
+    List<Event> allEvents = [SELECT Id FROM Event];
+    Assert.areEqual(3, allEvents.size(), 'Three interviews in one day should be allowed.');
