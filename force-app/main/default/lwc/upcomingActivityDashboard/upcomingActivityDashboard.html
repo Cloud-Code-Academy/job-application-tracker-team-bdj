@@ -1,0 +1,52 @@
+<template>
+    <lightning-card title="Upcoming Activity Dashboard" icon-name="standard:event">
+
+        <!-- Interviews Section -->
+        <div class="slds-m-around_medium">
+            <h2 class="slds-text-heading_small slds-m-bottom_small">Upcoming Interviews</h2>
+
+            <template if:true={hasInterviews}>
+                <template for:each={interviews} for:item="interview">
+                    <div key={interview.id} class="slds-box slds-m-bottom_x-small">
+                        <p><strong>{interview.Subject}</strong></p>
+                        <p>{interview.FormattedDate}</p>
+                    </div>
+                </template>
+            </template>
+
+            <template if:false={hasInterviews}>
+                <p>No upcoming interviews in the next 7 days.</p>
+            </template>
+        </div>
+
+        <!-- Tasks Section -->
+        <div class="slds-m-around_medium">
+            <h2 class="slds-text-heading_small slds-m-bottom_small">Upcoming Tasks</h2>
+
+            <template if:true={hasTasks}>
+                <template for:each={tasks} for:item="task">
+                    <div key={task.Id} class="slds-box slds-m-bottom_x-small">
+                        <p><strong>{task.Subject}</strong></p>
+                        <p>{task.FormattedDate} — {task.status}
+                            <template if:true={task.RelatedTo}>
+                                | {task.RelatedTo}
+                            </template>
+                        </p>
+                    </div>
+                </template>
+            </template>
+
+            <template if:false={hasTasks}>
+                <p>No upcoming tasks in the next 7 days.</p>
+            </template>
+        </div>
+
+        <!-- No Data Message -->
+        <template if:true={hasNoData}>
+            <div class="slds-m-around_medium">
+                <p>You're all clear! No upcoming interviews or tasks.</p>
+            </div>
+        </template>
+
+    </lightning-card>
+</template>
