@@ -154,4 +154,40 @@ for(Integer i = 0; i< 5; i++) {
     Assert.areEqual(5, allEvents.size(), 'All 5 non-overlapping events should be saved');
 
 }
+@IsTest 
+static void duration_allow_60mins() {
+    Event evt = new Event(
+        Subject = 'Valid Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,10,0,0)
+    );
+
+    Test.startTest();
+    insert evt;
+    Test.stopTest();
+
+    List<Event> allEvents = [SELECT Id FROM Event];
+    Assert.areEqual(1,allEvents.size(), 'A 60 minute interview should be allowed.');
+
+}
+
+@IsTest
+static void duration_rejection_90mins() {
+    Event evt = new Event(
+        Subject = 'Interview too long',
+        StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,10,30,0)
+    );
+    Test.startTest();
+    try {
+        insert evt;
+        Assert.fail('Expecting an error because the interview is longer than 90mins');
+    } catch (DMLException error) {
+        Assert.isTrue(
+            error.getMessage().contains('60'),
+            'Error should mention 60 mins. Got:' + error.getMessage()
+            );
+        }
+        Test.stopTest();
+    }
 }
