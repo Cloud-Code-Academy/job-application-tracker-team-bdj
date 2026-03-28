@@ -97,12 +97,11 @@ public with sharing class EventHandler{
      // 2. Fixed Interview Duration
 
 public static void validateFixedDuration(List<Event> newEvents) {
-            System.debug('Checking event duration');
+        
         for(Event evt: newEvents) {
             Long startMinutes = evt.StartDateTime.getTime()/60000;
             Long endMinutes = evt.EndDateTime.getTime() / 60000;
             Long durationMinutes = endMinutes - startMinutes;
-            System.debug('Duration:' + durationMinutes + 'minutes');
     
         if (durationMinutes != 60) {
 
@@ -114,12 +113,10 @@ public static void validateFixedDuration(List<Event> newEvents) {
 //Business Hours Restriction
      
 public static void validateBusinessHours(List<Event> newEvents) {
-    System.debug ('Checking business hours');
 
     for (Event evt: newEvents) {
         Integer startHour = evt.StartDateTime.hour();
         Integer endHour = evt.EndDateTime.hour();
-System.debug('Start hour:' + startHour + ' | End hour: ' + endHour);
         if(startHour < 8 || endHour > 17) {
             evt.addError('Interviews have to be scheduled between 8am and 5pm.');
         }
@@ -128,10 +125,8 @@ System.debug('Start hour:' + startHour + ' | End hour: ' + endHour);
 //No Weekend Scheduling
 
 public static void validateNoWeekendEvents (List<Event> newEvents) {
-    System.debug('Checking for weekend interviews');
     for (Event evt : newEvents) {
         String dayOfWeek = evt.StartDateTime.format('EEEE');
-        System.debug('Day of week:' + dayOfWeek);
 
         if( dayOfWeek == 'Saturday' || dayOfWeek == 'Sunday') {
             evt.addError('Cannot schedule interviews on the weekend');
@@ -142,7 +137,6 @@ public static void validateNoWeekendEvents (List<Event> newEvents) {
 
 public static void validateBufferTime (List<Event> newEvents) {
     List<Event> existingEvents = getExistingEvents(newEvents);
-System.debug ('Checking buffer time');
 
     for (Event newEvt : newEvents) {
         Long newStartMinutes = newEvt.StartDateTime.getTime()/60000;
@@ -158,7 +152,6 @@ System.debug ('Checking buffer time');
 
             Long bufferedStart = existingStartMinutes - 30;
             Long bufferedEnd = existingEndMinutes + 30;
-            System.debug('Buffered windows:' + bufferedStart + 'to' + bufferedEnd);
 
             if(newStartMinutes < bufferedEnd && newEndMinutes > bufferedStart) {
                 newEvt.addError(
@@ -176,7 +169,6 @@ System.debug ('Checking buffer time');
     //7. Maximum Interviews Per Day
 
 public static void validateMaxPerDay (List<Event> newEvents) {
-    System.debug('Check for max interview in a day');
     List<Event> existingEvents = getExistingEvents(newEvents);
 
     for (Event newEvt : newEvents) {
@@ -192,8 +184,6 @@ public static void validateMaxPerDay (List<Event> newEvents) {
                 count++;
         }
     }
-    System.debug('Events on' + eventDate + 'for this owner:' + count);
-
         if (count >= 3) {
             newEvt.addError(
                 'This interviewer already has three interviews scheduled for this date.' +
