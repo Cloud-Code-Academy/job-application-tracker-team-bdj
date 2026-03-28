@@ -111,15 +111,11 @@ public static void validateFixedDuration(List<Event> newEvents) {
         }
     }
 }
-
-    /*
-     * 3. Business Hours Restriction
-     * Note: Time zone awareness is handled natively by Salesforce DateTime fields.
-     * DateTime values are stored in UTC and displayed in each user's local time zone.
-     * Strictly using this for the sake of building code
-     */
-    // TODO: validateBusinessHours()
+//Business Hours Restriction
+     
 public static void validateBusinessHours(List<Event> newEvents) {
+    System.debug ('Checking business hours');
+
     for (Event evt: newEvents) {
         Integer startHour = evt.StartDateTime.hour();
         Integer endHour = evt.EndDateTime.hour();
@@ -129,15 +125,7 @@ System.debug('Start hour:' + startHour + ' | End hour: ' + endHour);
         }
     }
 }
-    /*
-     * 5. No Weekend Scheduling
-     * Pseudo Rules:
-     * For each new interview record
-     *     If start date falls on Saturday or Sunday
-     *         Prevent the interview from being saved.
-     *         Display error: "Interviews cannot be scheduled on weekends."
-     */
-    // TODO: validateNoWeekendEvents()
+//No Weekend Scheduling
 
 public static void validateNoWeekendEvents (List<Event> newEvents) {
     System.debug('Checking for weekend interviews');
@@ -146,44 +134,31 @@ public static void validateNoWeekendEvents (List<Event> newEvents) {
         System.debug('Day of week:' + dayOfWeek);
 
         if( dayOfWeek == 'Saturday' || dayOfWeek == 'Sunday') {
-            evt.affError('Cannot schedule interviews on the weekend');
+            evt.addError('Cannot schedule interviews on the weekend');
         }
     }
 }
-  /*
-     * 6. Interview Buffer Time
-     * Pseudo Rules:
-     * For each new interview record
-     *     Find existing interviews for the same interviewer.
-     *     For each existing interview
-     *         Expand existing event by 30 minutes on both ends
-     *         (subtract 30 min from start, add 30 min to end)
-     *         If new event overlaps with the expanded time range
-     *             Prevent the interview from being booked.
-     *             Display an error message:
-     *             "Interviews must have a 30-minute buffer between meetings.
-     *              Please select a later time."
-     */
-    // TODO: validateBufferTime()
+//Interview Buffer Time
+
 public static void validateBufferTime (List<Event> newEvents) {
     List<Event> existingEvents = getExistingEvents(newEvents);
 System.debug ('Checking buffer time');
 
     for (Event newEvt : newEvents) {
-        Long newStartMinutes = newEvtStartDateTime.getTime()/60000;
-        Long newEndMinute = newEvtEndTime.getTime()/60000;
+        Long newStartMinutes = newEvt.StartDateTime.getTime()/60000;
+        Long newEndMinutes = newEvt.EndDateTime.getTime()/60000;
 
-        for(Event existingEvt : newEvents) {
-            if( existingEvt.OwnerId != newEvent.OwnerId || existingEvt.Id == newEvt.Id) {
+        for(Event existingEvt : existingEvents) {
+            if( existingEvt.OwnerId != newEvt.OwnerId || existingEvt.Id == newEvt.Id) {
                 continue;
             }
 
-            Long existingStartMinutes = existingEvt.StartDatetiem.getTime() / 60000;
+            Long existingStartMinutes = existingEvt.StartDateTime.getTime() / 60000;
             Long existingEndMinutes = existingEvt.EndDateTime.getTime() / 60000;
 
-            Long bufferedStart = existingEvt.StartDateTime - 30;
-            Long bufferedEnd = existingEvt.EndDateTime + 30;
-            System.debug('Buffered windows:' + bufferedStart ' to ' + bufferedEnd);
+            Long bufferedStart = existingStartMinutes - 30;
+            Long bufferedEnd = existingEndMinutes + 30;
+            System.debug('Buffered windows:' + bufferedStart + 'to' + bufferedEnd);
 
             if(newStartMinutes < bufferedEnd && newEndMinutes > bufferedStart) {
                 newEvt.addError(
@@ -198,18 +173,8 @@ System.debug ('Checking buffer time');
     }
 
 
-    /*
-     * 7. Maximum Interviews Per Day
-     * Pseudo Rules:
-     * For each new interview record (insert or update)
-     *     Find interviews for the same interviewer on the same date.
-     *     Count the number of existing interviews.
-     *     If the number of total interviews is greater than or equal to 3
-     *         Prevent the interview from being saved.
-     *         Display an error message:
-     *         "This interviewer already has 3 interviews scheduled for this date.
-     *          Please select a different date."
-     */
+    //7. Maximum Interviews Per Day
+
 public static void validateMaxPerDay (List<Event> newEvents) {
     System.debug('Check for max interview in a day');
     List<Event> existingEvents = getExistingEvents(newEvents);

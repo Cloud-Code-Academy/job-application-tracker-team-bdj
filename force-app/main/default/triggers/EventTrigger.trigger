@@ -11,18 +11,27 @@
  */
 trigger EventTrigger on Event (before insert, before update) {
 
-    System.debug('>>> EventTrigger fired | Operation: ' + Trigger.operationType + ' | Records: ' + Trigger.new.size());
-
-    switch on Trigger.operationType {
+    System.debug('EventTrigger fired | Operation: ' +  Trigger.operationType + '|Records:' + Trigger.new.size());
+     switch on Trigger.operationType {
 
        
         when BEFORE_INSERT {
-            EventHandler.validateNoOverlappingEvents(Trigger.new);     
+            EventHandler.validateFixedDuration(Trigger.new);
+            EventHandler.validateBusinessHours(Trigger.new);
+            EventHandler.validateNoWeekendEvents(Trigger.new);
+            EventHandler.validateNoOverlappingEvents(Trigger.new);
+            EventHandler.validateBufferTime(Trigger.new);
+            EventHandler.validateMaxPerDay(Trigger.new);    
         }
 
       
         when BEFORE_UPDATE {
+            EventHandler.validateFixedDuration(Trigger.new);
+            EventHandler.validateBusinessHours(Trigger.new);
+            EventHandler.validateNoWeekendEvents(Trigger.new);
             EventHandler.validateNoOverlappingEvents(Trigger.new);
+            EventHandler.validateBufferTime(Trigger.new);
+            EventHandler.validateMaxPerDay(Trigger.new);
         }
     }
 }
