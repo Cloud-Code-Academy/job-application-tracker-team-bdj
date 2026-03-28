@@ -265,5 +265,58 @@ static void weekend_allow_weekday() {
     List<Event> allEvents = [SELECT Id FROM Event];
     Assert.areEqual(1,allEvents.size(), 'A weekday should be allowed');
 }
+@IsTest 
+static void buffer_reject_tooClose() {
+    Event interview1 = new Event(
+        Subject = 'First Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,10,0,0)
+
+    );
+    insert interview1;
+
+    Event interview2 = new Event(
+        Subject = 'Too Close Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,10,15,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,11,15,0)
+    );
+
+    Test.startTest();
+    try{
+    insert interview2;
+    Assert.fail('Expected an error because there is no 30 minute buffer.');
+} catch (DMLException error) {
+    Assert.isTrue(error.getMessage().contains('buffer'),
+    'Error should mention buffer.Got:' + error.getMessage()
+    );
 
 }
+Test.stopTest();
+}
+
+@IsTest 
+static void buffer_allow_enoughGap() {
+    Event interview1 = new Event(
+        Subject = 'First Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,9,0,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,10,0,0)
+    );
+    insert interview1;
+
+    Event interview2 = new Event(
+        Subject = 'Later Interview',
+        StartDateTime = DateTime.newInstance(2025,1,6,10,30,0),
+        EndDateTime = DateTime.newInstance(2025,1,6,11,30,0)
+    );
+
+    Test.startTest();
+    insert interview2;
+    Test.stopTest();
+
+List<Event> allEvents = [SELECT Id FROM Event];
+
+Assert.areEqual(2, allEvents.size(), 'Events with 30 min buffers should be allowed');
+
+}
+@IsTest 
+static void 
