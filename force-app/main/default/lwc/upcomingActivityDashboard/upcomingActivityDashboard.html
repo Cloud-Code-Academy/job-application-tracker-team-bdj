@@ -28,7 +28,7 @@
             <template if:true={hasInterviews}>
                 <template for:each={interviews} for:item="interview">
                     <div key={interview.Id} class="slds-box slds-m-bottom_x-small">
-                        <p><strong>{interview.Subject}</strong></p>
+                        <p><a data-id={interview.Id} onclick={navigateToRecord} style="cursor:pointer"><strong>{interview.Subject}</strong></a></p>
                         <p>{interview.FormattedDate}</p>
                     </div>
                 </template>
@@ -46,7 +46,7 @@
             <template if:true={hasTasks}>
                 <template for:each={filteredTasks} for:item="task">
                     <div key={task.Id} class="slds-box slds-m-bottom_x-small">
-                        <p><strong>{task.Subject}</strong></p>
+                        <p><a data-id={task.Id} onclick={navigateToRecord} style="cursor:pointer"><strong>{task.Subject}</strong></a></p>
                         <p>{task.FormattedDate} - {task.Status}
                             <template if:true={task.RelatedTo}>
                                 | {task.RelatedTo}
