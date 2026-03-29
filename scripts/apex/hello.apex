@@ -4,7 +4,10 @@
 //     SFDX: Execute Anonymous Apex with Currently Selected Text
 // You can also execute the entire file by running the command:
 //     SFDX: Execute Anonymous Apex with Editor Contents
-
-string tempvar = 'Enter_your_name_here';
-System.debug('Hello World!');
-System.debug('My name is ' + tempvar);
+// Query events that already exist in the org
+Event evt = new Event(
+    Subject = 'Interview Too Long',
+    StartDateTime = DateTime.newInstance(2025, 1, 6, 9, 0, 0),
+    EndDateTime = DateTime.newInstance(2025, 1, 6, 10, 30, 0)
+);
+insert evt;
