@@ -21,13 +21,17 @@ public with sharing class InterviewReminder implements Schedulable {
     //Counter so tests can verify how many emails were built
     @TestVisible private static Integer emailsSentCount = 0;
 
+    //Lets tests set a fake "today" so they don't break on weekends
+    @TestVisible private static Date referenceDate = null;
+
     public void execute(SchedulableContext sc) {
         sendInterviewReminders();
     }
 
     private static void sendInterviewReminders() {
         //Get the interviews scheduled for tomorrow
-        Date tomorrow = System.today().addDays(1);
+        Date baseDate = referenceDate != null ? referenceDate : System.today();
+        Date tomorrow = baseDate.addDays(1);
         DateTime tomorrowStart = DateTime.newInstance(tomorrow, Time.newInstance(0, 0, 0, 0));
         DateTime tomorrowEnd = DateTime.newInstance(tomorrow, Time.newInstance(23, 59, 59, 0));
 
