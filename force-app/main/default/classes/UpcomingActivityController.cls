@@ -15,13 +15,16 @@ public with sharing class UpcomingActivityController {
      * and allows Lightning to cache the results for better performance.
      */
     @AuraEnabled(cacheable=true)
-    public static List<Event> getUpcomingInterviews() {
+    public static List<Event> getUpcomingInterviews(Integer days) {
+        if (days == null || days < 1 || days > 30) {
+            days = 7;
+        }
         return [
             SELECT Id, Subject, StartDateTime, EndDateTime, Description
             FROM Event
             WHERE OwnerId = :UserInfo.getUserId()
               AND StartDateTime >= :DateTime.now()
-              AND StartDateTime <= :DateTime.now().addDays(7)
+              AND StartDateTime <= :DateTime.now().addDays(days)
               AND Subject LIKE '%Interview%'
             ORDER BY StartDateTime ASC
         ];
@@ -34,7 +37,10 @@ public with sharing class UpcomingActivityController {
      * things like "Research the company" or "Prepare interview questions."
      */
     @AuraEnabled(cacheable=true)
-    public static List<Task> getUpcomingTasks() {
+    public static List<Task> getUpcomingTasks(Integer days) {
+        if (days == null || days < 1 || days > 30) {
+            days = 7;
+        }
         return [
             SELECT Id, Subject, ActivityDate, Status, Priority, 
                    WhatId, What.Name
@@ -42,7 +48,7 @@ public with sharing class UpcomingActivityController {
             WHERE OwnerId = :UserInfo.getUserId()
               AND Status != 'Completed'
               AND ActivityDate >= :Date.today()
-              AND ActivityDate <= :Date.today().addDays(7)
+              AND ActivityDate <= :Date.today().addDays(days)
             ORDER BY ActivityDate ASC
         ];
     }

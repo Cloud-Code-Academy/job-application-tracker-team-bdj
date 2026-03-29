@@ -39,7 +39,7 @@ export default class UpcomingActivityDashboard extends LightningElement {
         this.selectedStatus = event.detail.value;
     }
 
-    @wire(getUpcomingInterviews)
+    @wire(getUpcomingInterviews, { days: '$selectedRange' })
     wiredInterviews({ data, error }) {
         if (data) {
             this.interviews = data.map(event => ({
@@ -62,7 +62,7 @@ export default class UpcomingActivityDashboard extends LightningElement {
         }
     }
 
-    @wire(getUpcomingTasks)
+    @wire(getUpcomingTasks, { days: '$selectedRange' })
     wiredTasks({ data, error }) {
         if (data) {
             this.tasks = data.map(task => ({
