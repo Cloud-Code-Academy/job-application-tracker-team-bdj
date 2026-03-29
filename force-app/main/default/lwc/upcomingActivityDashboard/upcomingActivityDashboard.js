@@ -1,10 +1,11 @@
 import { LightningElement, wire } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 
 //import files
 import getUpcomingInterviews from '@salesforce/apex/UpcomingActivityController.getUpcomingInterviews';
 import getUpcomingTasks from '@salesforce/apex/UpcomingActivityController.getUpcomingTasks';
 
-export default class UpcomingActivityDashboard extends LightningElement {
+export default class UpcomingActivityDashboard extends NavigationMixin(LightningElement) {
 
     // These hold the data returned from Apex
     interviews = [];
@@ -37,6 +38,16 @@ export default class UpcomingActivityDashboard extends LightningElement {
 
     handleStatusChange(event) {
         this.selectedStatus = event.detail.value;
+    }
+
+    navigateToRecord(event) {
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: event.currentTarget.dataset.id,
+                actionName: 'view'
+            }
+        });
     }
 
     @wire(getUpcomingInterviews, { days: '$selectedRange' })
